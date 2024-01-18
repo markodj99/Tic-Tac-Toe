@@ -13,7 +13,6 @@ app.use(express.urlencoded({extended: true}));
 app.use('/api/users', userRouter);
 //app.use(express.static('public'));
 
-
 authenticate();
 const runMigrations = async () => {
     try {

@@ -42,9 +42,7 @@ class UserRepo {
                 password: params.password
             }, {
                 transaction
-            }
-            );
-
+            });
             await transaction.commit();
             return true;
         } catch (error) {
