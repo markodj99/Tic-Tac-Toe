@@ -2,11 +2,16 @@ import Joi from "joi";
 import User from "../models/user";
 import UserRepo from "../repos/userRepo";
 import { LoginParams, RegisterParams, ValidateParamsResult, CustomResponse } from "../config/types";
+import * as bcrypt from "bcrypt";
+import * as jwt from 'jsonwebtoken'
 
 class UserService{
     private userRepo: UserRepo;
     private loginValidationSchema;
     private registerValidationSchema;
+    private saltNum:number;
+    private privateKey:string;
+    private expiresIn:string;
 
     constructor(userRepo:UserRepo) {
         this.userRepo = userRepo;
@@ -20,6 +25,11 @@ class UserService{
             password: Joi.string().min(8).max(255).required(),
             repeatpassword: Joi.string().min(8).max(255).required(),
         });
+
+        // izmestiti u env
+        this.saltNum = 10;
+        this.privateKey = 'secretKey';
+        this.expiresIn = '1h'
     }
 
     async processLogin(params:LoginParams):Promise<CustomResponse> {
@@ -29,15 +39,25 @@ class UserService{
         const user:User | null = await this.userRepo.getUserByEmail(params.email);
         if (!user) return { statusCode: 400, message: 'Wrong email, please try again.' };
 
-        // to do heshiranje passworda i jwt
-        if (user.getDataValue('password') !== params.password) return { statusCode: 400, message: 'Wrong password, please try again.' };
-        return { statusCode: 200, message: 'Welcome back.' };
+        const passwordsMatch:boolean = await bcrypt.compare(params.password, user.getDataValue('password'));
+        if (!passwordsMatch)  return { statusCode: 400, message: 'Wrong password, please try again.' };
+        return { statusCode: 200, message: this.generateJWT(user.getDataValue('id'), user.getDataValue('username')) };
     }
 
     private async validateLoginParams(params:LoginParams):Promise<ValidateParamsResult> {
         const validation = this.loginValidationSchema.validate(params);
         if(validation.error) return { result: false, message: validation.error.details[0].message };
         return { result: true, message: 'Valid request.' };
+    }
+
+    private generateJWT(id:number, username:string):string {
+        return jwt.sign({
+            id: id,
+            username: username
+        },
+        this.privateKey, {
+            expiresIn: this.expiresIn
+        });
     }
 
     async processRegister(params:RegisterParams):Promise<CustomResponse> {
@@ -48,10 +68,15 @@ class UserService{
         if (await this.userRepo.getUserByEmail(params.email)) return { statusCode: 400, message: 'Email already in use. Login instead.' };
         if (await this.userRepo.getUserByUsername(params.username)) return { statusCode: 400, message: 'Username taken. Please try another one.' };
 
-        //to do heshiranje passworda
+        params.password = await this.createHashedPassword(params.password);
         const response = await this.userRepo.createNewUser(params);
-        if (response)  return { statusCode: 200, message: 'You\'ve successfully registered.' };
+        if (response)  return { statusCode: 200, message: 'You\'ve successfully registered. Proceed to login page.' };
         return { statusCode: 500, message: 'Something went wrong. Please try again later.' };
+    }
+
+    private async createHashedPassword(password:string):Promise<string> {
+        const salt:string = await bcrypt.genSalt(this.saltNum);
+        return await bcrypt.hash(password, salt);
     }
 
     private async validateRegisterParams(params:RegisterParams):Promise<ValidateParamsResult> {
