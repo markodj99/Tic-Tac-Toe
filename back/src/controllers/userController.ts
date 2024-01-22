@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import UserService from "../services/userService";
-import { CustomResponse } from "../config/types";
+import { CustomUserRouterResponse } from "../config/types";
 
 class UserController{
     private userService: UserService
@@ -9,9 +9,9 @@ class UserController{
         this.userService = userService;
     }
 
-    public async login(req:Request, res:Response) {
+    async login(req:Request, res:Response) {
         try {
-            const response:CustomResponse = await this.userService.processLogin(req.body);
+            const response:CustomUserRouterResponse = await this.userService.processLogin(req.body);
             return res.status(response.statusCode).json({message: response.message});
         } catch (error) {
             console.error('Error while logging in the user:', error);
@@ -21,7 +21,7 @@ class UserController{
 
     async register(req:Request, res:Response) {
         try {
-            const response:CustomResponse = await this.userService.processRegister(req.body);
+            const response:CustomUserRouterResponse = await this.userService.processRegister(req.body);
             return res.status(response.statusCode).json({message: response.message});
         } catch (error) {
             console.error('Error while registering the new user:', error);

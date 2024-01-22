@@ -20,8 +20,8 @@ function LoginForm() {
 
   const formik = useFormik({
     initialValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -50,7 +50,6 @@ function LoginForm() {
       }
     },
   });
-
   
   return (
     <Container component="main" maxWidth="xs">

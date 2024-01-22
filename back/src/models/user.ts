@@ -29,7 +29,7 @@ User.init({
     tableName: 'User'
 });
 
-export const up = async (): Promise<void> => {
+export const upUser = async (): Promise<void> => {
     await User.sync({ force: true });
 };
 

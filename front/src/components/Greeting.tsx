@@ -7,10 +7,10 @@ function Greeting() {
 
 	if(jwt != null) {
 		let decoded:JwtPayload = jwtDecode(jwt);
-		if('username' in decoded) msg = `Welcome back ${decoded.username}!`;
+		if ('username' in decoded) msg = `Welcome back ${decoded.username}!`;
 	}
 
-  return (
+  	return (
 		<Box
 			sx={{
 				textAlign: "center",

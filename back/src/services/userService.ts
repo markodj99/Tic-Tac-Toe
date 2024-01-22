@@ -1,7 +1,7 @@
 import Joi from "joi";
 import User from "../models/user";
 import UserRepo from "../repos/userRepo";
-import { LoginParams, RegisterParams, ValidateParamsResult, CustomResponse } from "../config/types";
+import { LoginParams, RegisterParams, ValidateParamsResult, CustomUserRouterResponse } from "../config/types";
 import * as bcrypt from "bcrypt";
 import * as jwt from 'jsonwebtoken'
 
@@ -32,7 +32,7 @@ class UserService{
         this.expiresIn = '1h'
     }
 
-    async processLogin(params:LoginParams):Promise<CustomResponse> {
+    async processLogin(params:LoginParams):Promise<CustomUserRouterResponse> {
         const loginParamsResult:ValidateParamsResult = await this.validateLoginParams(params);
         if (!loginParamsResult.result) return { statusCode: 400, message: loginParamsResult.message };
 
@@ -60,7 +60,7 @@ class UserService{
         });
     }
 
-    async processRegister(params:RegisterParams):Promise<CustomResponse> {
+    async processRegister(params:RegisterParams):Promise<CustomUserRouterResponse> {
         const loginParamsResult:ValidateParamsResult = await this.validateRegisterParams(params);
         if (!loginParamsResult.result) return { statusCode: 400, message: loginParamsResult.message };
         if (params.password !== params.repeatpassword) return { statusCode: 400, message: 'Passwords must match.' };
