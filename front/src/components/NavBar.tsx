@@ -24,7 +24,9 @@ function NavBar()
 					</Typography>
 						<Stack direction="row" spacing={2}>
 							<Button color="inherit">
-								New Game
+								<MuiLink component={RouterLink} to="/sp-game" underline="none" color="inherit">
+									New Game
+								</MuiLink>		
 							</Button>
 							{
 								logedIn ?
@@ -37,7 +39,7 @@ function NavBar()
 										Login
 									</MuiLink>
 								</Button>
-								}
+							}
 						</Stack>
 				</Toolbar>
 			</AppBar>
