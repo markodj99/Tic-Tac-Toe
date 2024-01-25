@@ -19,7 +19,7 @@ class SinglePlayerRepo {
             if (game === null) return false;
             return true;
         } catch (error) {
-            console.error('Error while quering ongoing user games:', error);
+            console.error('Error while quering ongoing user sp games:', error);
             throw error;
         }
     }
@@ -34,7 +34,7 @@ class SinglePlayerRepo {
             });
             return game;
         } catch (error) {
-            console.error('Error while quering ongoing user games:', error);
+            console.error('Error while quering ongoing user sp games:', error);
             throw error;
         }
     }
@@ -43,7 +43,7 @@ class SinglePlayerRepo {
         const transaction:Transaction = await this.db.transaction();
         try {
             const game = await SinglePlayerTTT.create({
-                playerId: userId,
+                playerId: userId
             }, {
                 transaction
             });
@@ -51,7 +51,7 @@ class SinglePlayerRepo {
             return game;
         } catch (error) {
             await transaction.rollback();
-            console.error('Error while creating new user games:', error);
+            console.error('Error while creating new user sp games:', error);
             throw error;
         }
     }

@@ -3,10 +3,13 @@ import LoginForm from "./components/LoginForm";
 import NavBar from "./components/NavBar";
 import RegisterForm from "./components/RegisterForm";
 import NotFound from "./components/NotFound";
+import SinglePlayerTTT from "./components/SinglePlayerTTT";
+import MultiPlayerTTT from "./components/MultiPlayerTTT";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "./styles.css";
-import SinglePlayerTTT from "./components/SinglePlayerTTT";
+import GameList from "./components/GameList";
+import Game from "./components/Game";
 
 function App() {
   const isAuthenticated = ():boolean => {
@@ -22,11 +25,16 @@ function App() {
       <div id="main-div" className="main-div">
         <Routes>
           <Route path="/" Component={Greeting}/>
-          <Route path="/login" Component={() => !isAuthenticated() ? (<LoginForm />) : (<Navigate to="/"/>)}/>
-          <Route path="/register" Component={() => !isAuthenticated() ? (<RegisterForm />) : (<Navigate to="/"/>)}/>
-          <Route path="/sp-game" Component={() => isAuthenticated() ? (<SinglePlayerTTT time={Date.now()}/>)  : (<Navigate to="/"/>)}/>
-          <Route path="/*" element={<Navigate to="/not-found"/>} />
-          <Route path="/not-found" element={<NotFound/>}/>
+          <Route path="/login" Component={() => !isAuthenticated() ? <LoginForm /> : <Navigate to="/"/>}/>
+          <Route path="/register" Component={() => !isAuthenticated() ? <RegisterForm /> : <Navigate to="/"/>}/>
+          <Route path="/sp-game" Component={() => isAuthenticated() ? <SinglePlayerTTT/>  : <Navigate to="/login"/>}/>
+          <Route path="/mp-game">
+            <Route index Component={() => isAuthenticated() ? <MultiPlayerTTT/> : <Navigate to="/login"/>}/>
+            <Route path="existing-games" Component={ () => isAuthenticated() ? <GameList/>  : <Navigate to="/login"/>}/>
+            <Route path="game" Component={() => isAuthenticated() ? <Game/> : <Navigate to="/login"/>}/>
+          </Route>
+          <Route path="/*" Component={ () => <Navigate to="/not-found"/>} />
+          <Route path="/not-found" Component={NotFound}/>
         </Routes>
       </div>
       <Toaster position="top-left" 
@@ -40,7 +48,7 @@ function App() {
               fontSize: "20px",
               color: "black"
             },
-              duration: 3000
+              duration: 1500
           },
           error: {
             style: {
@@ -51,7 +59,7 @@ function App() {
               fontSize: "20px",
               color: "black"
             },
-            duration: 3000
+            duration: 1500
           }
         }}/>
     </>

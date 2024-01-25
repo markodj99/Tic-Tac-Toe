@@ -8,13 +8,14 @@ const seq:Sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConf
     max: dbConfig.max,
     min: dbConfig.min,
     idle: dbConfig.idle
-  }
+  },
+  logging: false
 });
 
 export const authenticateDb = async () => {
   try {
     await seq.authenticate();
-    console.log('Connection has been established successfully.');
+    console.log('Connection to the database has been established successfully.');
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }

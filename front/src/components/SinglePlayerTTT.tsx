@@ -4,11 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import toast from 'react-hot-toast';
 
-interface Props {
-  time: number;
-}
-
-function SinglePlayerTTT(time:Props) {
+function SinglePlayerTTT() {
   const [userSymbol, setUserSymbol] = useState('X');
   const [moves, setMoves] = useState(Array(9).fill('null'));
   const [board, setBoard] = useState(Array(9).fill('null'));
@@ -35,6 +31,8 @@ function SinglePlayerTTT(time:Props) {
           setMessage('Please Choose Symbol');
         }
         else {
+          if (data.computerSymbol === 'X') setUserSymbol('O');
+          else setUserSymbol('X');
           setVisibility(false);
           setMessage('Single Player');
         }
@@ -45,7 +43,7 @@ function SinglePlayerTTT(time:Props) {
       }
     } catch (error) {
       toast.error('Something went wrong. Please try again later.');
-      console.error('Error while trying fetch game data:', error);
+      console.error('Error while trying to fetch game data:', error);
     }
   };
 
@@ -96,10 +94,10 @@ function SinglePlayerTTT(time:Props) {
                     border: '2px solid black',
                     background: 'yellow'
                    },
-            duration: 3000
+            duration: 1200
           });
 
-          setTimeout(async () => await getGame(), 1000);
+          setTimeout(async () => await getGame(), 700);
         }
       } else {
         toast.error('Something went wrong. Please try again later.');
@@ -114,7 +112,7 @@ function SinglePlayerTTT(time:Props) {
 		getGame();
 
 		return () => {};
-  }, [time]);
+  }, []);
 
   const handleChooseSymbolClick = async (symbol:string) => {
     if (symbol === 'X') {
