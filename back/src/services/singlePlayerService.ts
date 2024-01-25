@@ -1,5 +1,5 @@
 import SinglePlayerRepo from "../repos/singlePlayerRepo";
-import * as jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken';
 import { CustomSPGameRouterResponse, NewBoard } from "../config/types";
 import SinglePlayerTTT from "../models/singlePlayerTTT";
 

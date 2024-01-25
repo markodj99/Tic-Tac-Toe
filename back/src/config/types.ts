@@ -31,3 +31,33 @@ export interface NewBoard{
     newBoardState: string[],
     newMoves: string[]
 }
+
+export interface GameListData {
+    index: number,
+    gameId: number,
+    creatorName: string,
+    creatorSymbol: string,
+    yourSymbol: string
+}
+
+export interface HasGameResponse {
+    condition: boolean,
+    gameId: number
+}
+
+export interface GameState {
+    moves: string[],
+    boardState: string[],
+    turnToMove: boolean,
+    symbol: string,
+    player: string,
+    canPlay: boolean,
+    playerId: number
+}
+
+export interface UpdatedGameStatus {
+    boardState: string[],
+    moves: string[],
+    winner: number,
+    turnToMove: number
+}

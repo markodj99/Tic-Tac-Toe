@@ -43,7 +43,7 @@ function RegisterForm() {
         const data = await response.json();
         if (response.ok) {
           toast.success(data.message);
-          setTimeout(() => navigate('/login'), 3500);
+          setTimeout(() => navigate('/login'), 500);
         } else {
           toast.error(data.message);
         }

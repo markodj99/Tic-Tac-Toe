@@ -24,10 +24,21 @@ function NavBar()
 					</Typography>
 						<Stack direction="row" spacing={2}>
 							<Button color="inherit">
+								<MuiLink component={RouterLink} to="/mp-game" underline="none" color="inherit">
+									Multi Player
+								</MuiLink>
+							</Button>
+							<Button color="inherit">
 								<MuiLink component={RouterLink} to="/sp-game" underline="none" color="inherit">
-									New Game
+									Single Player
 								</MuiLink>		
 							</Button>
+							{
+								logedIn &&
+								<Button color="inherit">
+									My Games
+								</Button>
+							}
 							{
 								logedIn ?
 								<Button color="inherit" onClick={() => {localStorage.removeItem('token'); setTimeout(() => navigate('/login'), 500);}}>

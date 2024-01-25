@@ -40,7 +40,7 @@ function LoginForm() {
           localStorage.setItem('token', jwt);
 
           toast.success('Successful login!');
-          setTimeout(() => navigate('/'), 3500);
+          setTimeout(() => navigate('/'), 500);
         } else {
           toast.error(data.message);
         }
