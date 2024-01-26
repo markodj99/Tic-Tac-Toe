@@ -3,7 +3,8 @@ import User from "../models/user";
 import UserRepo from "../repos/userRepo";
 import { LoginParams, RegisterParams, ValidateParamsResult, CustomUserRouterResponse } from "../config/types";
 import * as bcrypt from "bcrypt";
-import * as jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken';
+import * as dotenv from 'dotenv';
 
 class UserService{
     private userRepo: UserRepo;
@@ -26,10 +27,10 @@ class UserService{
             repeatpassword: Joi.string().min(8).max(255).required(),
         });
 
-        // izmestiti u env
-        this.saltNum = 10;
-        this.privateKey = 'secretKey';
-        this.expiresIn = '1h'
+        dotenv.config();
+        this.saltNum = process.env.SALT ? parseInt(process.env.SALT, 10) : 10;
+        this.privateKey = process.env.PRIVATEKEY || 'key';
+        this.expiresIn = process.env.EXPIRESIN || '1h';
     }
 
     async processLogin(params:LoginParams):Promise<CustomUserRouterResponse> {

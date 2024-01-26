@@ -4,10 +4,12 @@ import SinglePlayerTTT from "../models/singlePlayerTTT";
 import User from "../models/user";
 import MultiPlayerRepo from "../repos/multiPlayerRepo";
 import * as jwt from 'jsonwebtoken';
+import * as dotenv from 'dotenv';
 
 class MultiPlayerService{
     private multiPlayerRepo: MultiPlayerRepo;
     private winningCombos:number[][];
+    private privateKey:string;
 
     constructor(multiPlayerRepo:MultiPlayerRepo) {
         this.multiPlayerRepo = multiPlayerRepo;
@@ -21,6 +23,9 @@ class MultiPlayerService{
             [0, 4, 8],
             [2, 4, 6],
         ];
+
+        dotenv.config();
+        this.privateKey = process.env.PRIVATEKEY || 'key';
     }
 
     async hasGame(token:string):Promise<HasGameResponse> {
@@ -72,7 +77,7 @@ class MultiPlayerService{
     }
 
     private getUserId(token:string):number {
-        const decoded:any = jwt.verify(token, 'secretKey'); // sigurno uvek ima id property
+        const decoded:any = jwt.verify(token, this.privateKey); // sigurno uvek ima id property
         return decoded.id;
     }
 

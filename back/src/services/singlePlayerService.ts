@@ -2,10 +2,12 @@ import SinglePlayerRepo from "../repos/singlePlayerRepo";
 import * as jwt from 'jsonwebtoken';
 import { CustomSPGameRouterResponse, NewBoard, SpGameDisplayData, SpGameList } from "../config/types";
 import SinglePlayerTTT from "../models/singlePlayerTTT";
+import * as dotenv from 'dotenv';
 
 class SinglePlayerService{
     private singlePlayerRepo: SinglePlayerRepo;
     private winningCombos:number[][];
+    private privateKey:string;
 
     constructor(singlePlayerRepo:SinglePlayerRepo) {
         this.singlePlayerRepo = singlePlayerRepo;
@@ -19,6 +21,9 @@ class SinglePlayerService{
             [0, 4, 8],
             [2, 4, 6],
         ];
+
+        dotenv.config();
+        this.privateKey = process.env.PRIVATEKEY || 'key';
     }
 
     async createOrGetGame(token:string):Promise<CustomSPGameRouterResponse> {
@@ -143,7 +148,7 @@ class SinglePlayerService{
     }
 
     private getUserId(token:string):number {
-        const decoded:any = jwt.verify(token, 'secretKey'); // sigurno uvek ima id property
+        const decoded:any = jwt.verify(token, this.privateKey); // sigurno uvek ima id property
         return decoded.id;
     }
 

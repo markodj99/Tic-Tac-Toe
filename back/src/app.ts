@@ -8,8 +8,10 @@ import { authenticateDb }  from './database/dbHandler';
 import morgan from 'morgan';
 import cors from 'cors';
 import runManualMigrations from './database/runManualMigrations';
+import * as dotenv from 'dotenv';
 
-const port:number = 5000;
+dotenv.config();
+const port:number = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 const app:Application = express();
 
 app.use(cors({origin: 'http://localhost:3000'}));
