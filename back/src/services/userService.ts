@@ -3,7 +3,8 @@ import User from "../models/user";
 import UserRepo from "../repos/userRepo";
 import { LoginParams, RegisterParams, ValidateParamsResult, CustomUserRouterResponse } from "../config/types";
 import * as bcrypt from "bcrypt";
-import * as jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken';
+import * as dotenv from 'dotenv';
 
 class UserService{
     private userRepo: UserRepo;
@@ -26,10 +27,10 @@ class UserService{
             repeatpassword: Joi.string().min(8).max(255).required(),
         });
 
-        // izmestiti u env
-        this.saltNum = 10;
-        this.privateKey = 'secretKey';
-        this.expiresIn = '1h'
+        dotenv.config();
+        this.saltNum = process.env.SALT ? parseInt(process.env.SALT, 10) : 10;
+        this.privateKey = process.env.PRIVATEKEY || 'key';
+        this.expiresIn = process.env.EXPIRESIN || '1h';
     }
 
     async processLogin(params:LoginParams):Promise<CustomUserRouterResponse> {
@@ -37,10 +38,10 @@ class UserService{
         if (!loginParamsResult.result) return { statusCode: 400, message: loginParamsResult.message };
 
         const user:User | null = await this.userRepo.getUserByEmail(params.email);
-        if (!user) return { statusCode: 400, message: 'Wrong email, please try again.' };
+        if (!user) return { statusCode: 400, message: 'Wrong email or password, please try again.' };
 
         const passwordsMatch:boolean = await bcrypt.compare(params.password, user.getDataValue('password'));
-        if (!passwordsMatch)  return { statusCode: 400, message: 'Wrong password, please try again.' };
+        if (!passwordsMatch)  return { statusCode: 400, message: 'Wrong password or password, please try again.' };
         return { statusCode: 200, message: this.generateJWT(user.getDataValue('id'), user.getDataValue('username')) };
     }
 

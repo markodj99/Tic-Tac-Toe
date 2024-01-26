@@ -50,7 +50,7 @@ MultiPlayerTTT.init({
         }
     },
     moves: {
-        type: DataTypes.ARRAY(DataTypes.STRING(15)),
+        type: DataTypes.ARRAY(DataTypes.STRING(25)),
         allowNull: false,
         defaultValue: ['null','null','null','null','null','null','null','null','null']
     },

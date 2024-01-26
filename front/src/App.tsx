@@ -10,6 +10,9 @@ import { Toaster } from "react-hot-toast";
 import "./styles.css";
 import GameList from "./components/GameList";
 import Game from "./components/Game";
+import History from "./components/History";
+import SpGameDisplay from "./components/SpGameDisplay";
+import MpGameDisplay from "./components/MpGameDisplay";
 
 function App() {
   const isAuthenticated = ():boolean => {
@@ -32,6 +35,11 @@ function App() {
             <Route index Component={() => isAuthenticated() ? <MultiPlayerTTT/> : <Navigate to="/login"/>}/>
             <Route path="existing-games" Component={ () => isAuthenticated() ? <GameList/>  : <Navigate to="/login"/>}/>
             <Route path="game" Component={() => isAuthenticated() ? <Game/> : <Navigate to="/login"/>}/>
+          </Route>
+          <Route path="/history">
+            <Route index Component={ () => isAuthenticated() ? <History/> : <Navigate to="/login"/>}/>
+            <Route path="sp/:id" Component={ () => isAuthenticated() ? <SpGameDisplay/> : <Navigate to="/login"/>}/>
+            <Route path="mp/:id" Component={ () => isAuthenticated() ? <MpGameDisplay/> : <Navigate to="/login"/>}/>
           </Route>
           <Route path="/*" Component={ () => <Navigate to="/not-found"/>} />
           <Route path="/not-found" Component={NotFound}/>

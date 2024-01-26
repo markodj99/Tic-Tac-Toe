@@ -105,6 +105,63 @@ class MultiPlayerRepo {
             throw error;
         }
     }
+
+    async getAllFinishedByUserId(userId:number):Promise<MultiPlayerTTT[]> {
+        try {
+            const games = await MultiPlayerTTT.findAll({
+                where: {
+                    [Op.or]: [
+                        { creatorId: userId },
+                        { joinerId: userId }
+                    ],
+                    winner: {
+                        [Op.not]: -1
+                    }
+                },
+                include: [
+                    {
+                      model: User,
+                      as: 'Creator',
+                      attributes: ['username']
+                    },
+                    {
+                      model: User,
+                      as: 'Joiner',
+                      attributes: ['username']
+                    }
+                ],
+                order: [['updatedAt', 'DESC']]
+            });
+            return games;
+        } catch (error) {
+            console.error('Error while getting all finished mp games by user id:', error);
+            throw error;
+        }
+    }
+
+    async getFinishedGameById(gameId:number):Promise<MultiPlayerTTT | null> {
+        try {
+            const game = await MultiPlayerTTT.findOne({
+                where: { id: gameId },
+                include: [
+                    {
+                      model: User,
+                      as: 'Creator',
+                      attributes: ['username']
+                    },
+                    {
+                      model: User,
+                      as: 'Joiner',
+                      attributes: ['username']
+                    }
+                ],
+            });
+            return game;
+        } catch (error) {
+            console.error('Error while quering finished user sp games:', error);
+            throw error;
+        }
+    }
 }
 
 export default MultiPlayerRepo;

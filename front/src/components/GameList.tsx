@@ -75,7 +75,7 @@ function GameList() {
   return (
     <>
       <Container component="main" maxWidth="lg" style={{ marginTop: 20 }}>
-        <TableContainer component={Paper} style={{ maxHeight: 800 }}>
+        <TableContainer component={Paper} style={{ maxHeight: 720 }}>
           <Table style={{ minWidth: 300, border: '2px solid blue' }}>
             <TableHead>
               <TableRow>

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import SinglePlayerService from "../services/singlePlayerService";
-import { CustomSPGameRouterResponse } from "../config/types";
+import { CustomSPGameRouterResponse, SpGameDisplayData, SpGameList } from "../config/types";
 
 class SinglePlayerController{
     private singlePlayerService: SinglePlayerService
@@ -38,6 +38,27 @@ class SinglePlayerController{
             return res.status(200).json(response);
         } catch (error) {
             console.error('Error while creating or getting sp game:', error);
+            return res.status(500).json({message: 'Something went wrong. Please try again later.'});
+        }
+    }
+
+    async getAllFinished(req:Request, res:Response) {
+        try {
+            const token:string = req.headers['authorization'] === undefined ? 'no-token' : req.headers['authorization'];
+            const response:SpGameList[] = await this.singlePlayerService.getAllFinished(token);
+            return res.status(200).json({data: response});
+        } catch (error) {
+            console.error('Error while getting all finished sp games:', error);
+            return res.status(500).json({message: 'Something went wrong. Please try again later.'});
+        }
+    }
+    
+    async getOneFinished(req:Request, res:Response) {
+        try {
+            const response:SpGameDisplayData = await this.singlePlayerService.getOneFinished(parseInt(req.params.id, 10));
+            return res.status(200).json(response);
+        } catch (error) {
+            console.error('Error while getting finished sp games', error);
             return res.status(500).json({message: 'Something went wrong. Please try again later.'});
         }
     }

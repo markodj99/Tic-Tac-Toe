@@ -1,4 +1,4 @@
-import { Sequelize, Transaction } from "sequelize";
+import { Op, Sequelize, Transaction } from "sequelize";
 import seq from "../database/dbHandler";
 import SinglePlayerTTT from "../models/singlePlayerTTT";
 
@@ -67,6 +67,36 @@ class SinglePlayerRepo {
         } catch (error) {
             await transaction.rollback();
             console.error('Error while setting computer side:', error);
+            throw error;
+        }
+    }
+
+    async getAllFinishedByUserId(userId:number):Promise<SinglePlayerTTT[]> {
+        try {
+            const games = await SinglePlayerTTT.findAll({
+                where: {
+                    playerId: userId,
+                    winner: {
+                        [Op.not]: 'ongoing'
+                    }
+                },
+                order: [['updatedAt', 'DESC']]
+            });
+            return games;
+        } catch (error) {
+            console.error('Error while getting all finished sp games by user id:', error);
+            throw error;
+        }
+    }
+
+    async getFinishedGameById(gameId:number):Promise<SinglePlayerTTT | null> {
+        try {
+            const game = await SinglePlayerTTT.findOne({
+                where: { id: gameId }
+            });
+            return game;
+        } catch (error) {
+            console.error('Error while quering finished user sp games:', error);
             throw error;
         }
     }

@@ -61,3 +61,36 @@ export interface UpdatedGameStatus {
     winner: number,
     turnToMove: number
 }
+
+export interface SpGameList {
+    index: number,
+    gameId: number,
+    winner: string,
+    yourSymbol: string,
+    computerSymbol: string,
+    updatedAt: string
+}
+
+export interface MpGameList {
+    index: number,
+    gameId: number,
+    winner: string,
+    yourSymbol: string,
+    opponentSymbol: string,
+    opponent:string,
+    updatedAt: string
+}
+
+export interface SpGameDisplayData {
+    moves: string[],
+    computerSymbol: string,
+    winner: string
+}
+
+export interface MpGameDisplayData {
+    moves: string[],
+    winner: string,
+    yourSymbol: string,
+    opponentSymbol: string,
+    opponent:string,
+}
