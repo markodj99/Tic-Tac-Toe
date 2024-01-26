@@ -51,7 +51,6 @@ function Game() {
       newSocket.emit('joinGame', gameId);
       newSocket.emit('getState', gameId, token);
       newSocket.on('getStateResponse', (response:GameState) => {
-        console.log(response);
         setBoard(response.boardState);
         setMoves(response.moves);
         setUserSymbol(response.symbol);
@@ -114,7 +113,7 @@ function Game() {
     for(let i = 0; i < newMoves.length; i++)
     {
       if(newMoves[i] === 'null') {
-        newMoves[i] = `${i + 1}_${playerId}_${userSymbol}_${index}`;
+        newMoves[i] = `${i + 1}_${userSymbol}_${index}_${playerId}`;
         break;
       }
     }
@@ -148,23 +147,23 @@ function Game() {
 
   return (
     <>
-    <Box textAlign="center">
-      <Typography variant="h2" color="primary" gutterBottom justifyContent="center">
-          {message}
-      </Typography>
-    </Box>
-    <Grid container spacing={0.5}>
-        {[0, 1, 2].map((row) => (
-        <Grid container item key={row} justifyContent="center" spacing={0.5}>
-            {[0, 1, 2].map((col) => (
-                <Grid item key={col}>
-                    {renderSquare(row * 3 + col)}
-                </Grid>
-            ))}
-        </Grid>
-        ))}
-    </Grid>
-  </>
+      <Box textAlign="center">
+        <Typography variant="h2" color="primary" gutterBottom justifyContent="center">
+            {message}
+        </Typography>
+      </Box>
+      <Grid container spacing={0.5}>
+          {[0, 1, 2].map((row) => (
+          <Grid container item key={row} justifyContent="center" spacing={0.5}>
+              {[0, 1, 2].map((col) => (
+                  <Grid item key={col}>
+                      {renderSquare(row * 3 + col)}
+                  </Grid>
+              ))}
+          </Grid>
+          ))}
+      </Grid>
+    </>
   );
 }
 

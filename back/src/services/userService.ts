@@ -37,10 +37,10 @@ class UserService{
         if (!loginParamsResult.result) return { statusCode: 400, message: loginParamsResult.message };
 
         const user:User | null = await this.userRepo.getUserByEmail(params.email);
-        if (!user) return { statusCode: 400, message: 'Wrong email, please try again.' };
+        if (!user) return { statusCode: 400, message: 'Wrong email or password, please try again.' };
 
         const passwordsMatch:boolean = await bcrypt.compare(params.password, user.getDataValue('password'));
-        if (!passwordsMatch)  return { statusCode: 400, message: 'Wrong password, please try again.' };
+        if (!passwordsMatch)  return { statusCode: 400, message: 'Wrong password or password, please try again.' };
         return { statusCode: 200, message: this.generateJWT(user.getDataValue('id'), user.getDataValue('username')) };
     }
 

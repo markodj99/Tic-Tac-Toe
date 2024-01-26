@@ -48,7 +48,7 @@ function LoginForm() {
         toast.error('Something went wrong. Please try again later.');
         console.error('Error while trying to login:', error);
       }
-    },
+    }
   });
   
   return (
