@@ -51,7 +51,7 @@ SinglePlayerTTT.init({
 });
 
 export const upSinglePlayerTTT = async (): Promise<void> => {
-    await SinglePlayerTTT.sync({ force: true });
+    await SinglePlayerTTT.sync({ force: false });
 };
 
 export default SinglePlayerTTT;

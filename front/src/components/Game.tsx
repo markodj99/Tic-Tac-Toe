@@ -56,8 +56,9 @@ function Game() {
         setUserSymbol(response.symbol);
         setPlayerId(response.playerId);
         if (response.canPlay) {
+          console.log(response.turnToMove);
           setMessage(response.turnToMove ? 'Your Turn To Move' : 'Waiting For An Opponent To Make A Move'); 
-          setCanClick(true);
+          setCanClick(response.turnToMove ? true : false);
         } else {
           setMessage('Waiting For An Opponent To Join');
           setCanClick(false);

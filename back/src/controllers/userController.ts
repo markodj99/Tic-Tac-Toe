@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import UserService from "../services/userService";
-import { CustomUserRouterResponse } from "../config/types";
+import { CustomUserRouterResponse } from "../types/types";
 
 class UserController{
     private userService: UserService

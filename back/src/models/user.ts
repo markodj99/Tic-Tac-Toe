@@ -30,7 +30,7 @@ User.init({
 });
 
 export const upUser = async (): Promise<void> => {
-    await User.sync({ force: true });
+    await User.sync({ force: false });
 };
 
 export default User;

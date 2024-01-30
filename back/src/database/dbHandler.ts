@@ -1,13 +1,21 @@
 import { Sequelize } from 'sequelize';
-import dbConfig  from '../config/config';
+import * as dotenv from 'dotenv';
 
-const seq:Sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, {
-  host: dbConfig.host,
+dotenv.config();
+const dbName = process.env.DATABASENAME || 'db_name';
+const dbUsername = process.env.DATABASEUSERNAME || 'db_username';
+const dbPassword = process.env.DATABASEPASSWORD || 'db_password';
+const dbHost = process.env.DATABASEHOST || 'db_host';
+const port = process.env.DATABASEPORT ? parseInt(process.env.DATABASEPORT, 10) : 10;
+
+const seq:Sequelize = new Sequelize(dbName, dbUsername, dbPassword, {
+  host: dbHost,
   dialect: 'postgres',
+  port: port,
   pool: {
-    max: dbConfig.max,
-    min: dbConfig.min,
-    idle: dbConfig.idle
+    max: 9,
+    min: 0,
+    idle: 10000
   },
   logging: false
 });

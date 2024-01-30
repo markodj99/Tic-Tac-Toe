@@ -24,7 +24,7 @@ app.use('/api/mp-game', multiPlayerRouter);
 //app.use(express.static('public'));
 
 authenticateDb();
-//runManualMigrations();
+runManualMigrations();
 
 const server:HTTPServer  = createServer(app);
 export const io:Server  = new Server(server, {cors: {origin: 'http://localhost:3000'}});
