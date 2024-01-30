@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import MultiPlayerService from "../services/multiPlayerService";
-import { GameListData, GameState, HasGameResponse, MpGameDisplayData, MpGameList, UpdatedGameStatus } from "../config/types";
+import { GameListData, GameState, HasGameResponse, MpGameDisplayData, MpGameList, UpdatedGameStatus } from "../types/types";
 
 class MultiPlayerController{
     private multiPlayerService: MultiPlayerService

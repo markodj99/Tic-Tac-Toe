@@ -5,7 +5,7 @@ import MultiPlayerRepo from "../repos/multiPlayerRepo";
 import auth from "../middleware/auth";
 import { Socket } from 'socket.io';
 import { io } from '../app';
-import { GameState, UpdatedGameStatus } from "../config/types";
+import { GameState, UpdatedGameStatus } from "../types/types";
 
 const multiPlayerController:MultiPlayerController = new MultiPlayerController(new MultiPlayerService(new MultiPlayerRepo()));
 const multiPlayerRouter:Router = express.Router();

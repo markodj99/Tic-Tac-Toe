@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  back:
+    build: ./back
+    container_name: back_container
+    ports:
+      - '5000:5000'
+    depends_on:
+      - database
+    networks:
+      - app-network
+    environment:
+      - WAIT_HOSTS=database:5432
+
+  database:
+    image: postgres:16
+    container_name: database_container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: strongpassword
+      POSTGRES_DB: tictactoe
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  front:
+    build: ./front
+    container_name: front_container
+    ports:
+      - '3000:3000'
+    tty: true
+
+networks:
+  app-network:
+    driver: bridge
+    
+volumes: 
+  db-data:

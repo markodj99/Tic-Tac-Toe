@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import SinglePlayerService from "../services/singlePlayerService";
-import { CustomSPGameRouterResponse, SpGameDisplayData, SpGameList } from "../config/types";
+import { CustomSPGameRouterResponse, SpGameDisplayData, SpGameList } from "../types/types";
 
 class SinglePlayerController{
     private singlePlayerService: SinglePlayerService

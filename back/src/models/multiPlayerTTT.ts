@@ -88,7 +88,7 @@ MultiPlayerTTT.belongsTo(User, {
 
 
 export const upMultiPlayerTTT = async (): Promise<void> => {
-    await MultiPlayerTTT.sync({ force: true });
+    await MultiPlayerTTT.sync({ force: false });
 };
 
 export default MultiPlayerTTT;

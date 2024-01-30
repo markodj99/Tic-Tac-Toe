@@ -1,7 +1,7 @@
 import Joi from "joi";
 import User from "../models/user";
 import UserRepo from "../repos/userRepo";
-import { LoginParams, RegisterParams, ValidateParamsResult, CustomUserRouterResponse } from "../config/types";
+import { LoginParams, RegisterParams, ValidateParamsResult, CustomUserRouterResponse } from "../types/types";
 import * as bcrypt from "bcrypt";
 import * as jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';

@@ -1,4 +1,4 @@
-import { RegisterParams } from "../config/types";
+import { RegisterParams } from "../types/types";
 import User from "../models/user";
 import { Sequelize, Transaction } from "sequelize";
 import seq from "../database/dbHandler";

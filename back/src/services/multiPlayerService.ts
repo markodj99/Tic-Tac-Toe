@@ -1,4 +1,4 @@
-import { GameListData, GameState, HasGameResponse, MpGameDisplayData, MpGameList, UpdatedGameStatus } from "../config/types";
+import { GameListData, GameState, HasGameResponse, MpGameDisplayData, MpGameList, UpdatedGameStatus } from "../types/types";
 import MultiPlayerTTT from "../models/multiPlayerTTT";
 import SinglePlayerTTT from "../models/singlePlayerTTT";
 import User from "../models/user";
