@@ -2,7 +2,7 @@ import { GameListData, GameState, HasGameResponse, MpGameDisplayData, MpGameList
 import MultiPlayerTTT from "../models/multiPlayerTTT";
 import SinglePlayerTTT from "../models/singlePlayerTTT";
 import User from "../models/user";
-import MultiPlayerRepo from "../repos/multiPlayerRepo";
+import MultiPlayerRepo from "../repostemp/multiPlayerRepo";
 import * as jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 

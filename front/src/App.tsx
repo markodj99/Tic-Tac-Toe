@@ -13,6 +13,13 @@ import Game from "./components/Game";
 import History from "./components/History";
 import SpGameDisplay from "./components/SpGameDisplay";
 import MpGameDisplay from "./components/MpGameDisplay";
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+
+
+const client = new ApolloClient({
+  uri: `${process.env.REACT_APP_API_ENDPOINT}/graphql`,
+  cache: new InMemoryCache()
+});
 
 function App() {
   const isAuthenticated = ():boolean => {
@@ -21,7 +28,7 @@ function App() {
   };
 
   return (
-    <>
+    <ApolloProvider client={client}>
       <div id="navbar-div">
         <NavBar/>
       </div>
@@ -70,7 +77,7 @@ function App() {
             duration: 1500
           }
         }}/>
-    </>
+    </ApolloProvider>
   );
 }
 

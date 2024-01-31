@@ -1,7 +1,7 @@
 import express, { Router } from "express";
-import MultiPlayerController from "../controllers/multiPlayerController";
-import MultiPlayerService from "../services/multiPlayerService";
-import MultiPlayerRepo from "../repos/multiPlayerRepo";
+import MultiPlayerController from "../controllerstemp/multiPlayerController";
+import MultiPlayerService from "../servicestemp/multiPlayerService";
+import MultiPlayerRepo from "../repostemp/multiPlayerRepo";
 import auth from "../middleware/auth";
 import { Socket } from 'socket.io';
 import { io } from '../app';

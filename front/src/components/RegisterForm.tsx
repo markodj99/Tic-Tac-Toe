@@ -9,9 +9,20 @@ import { Link as RouterLink, useNavigate} from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import toast from 'react-hot-toast';
+import { gql, useMutation } from '@apollo/client';
+
+const REGISTER_USER = gql`
+  mutation RegisterUser($username: String!, $email: String!, $password: String!, $repeatpassword: String!) {
+    registerUser(username: $username, email: $email, password: $password, repeatpassword: $repeatpassword) {
+      success
+      message
+    }
+  }
+`;
 
 function RegisterForm() {
   const navigate = useNavigate();
+  const [registerUser] = useMutation(REGISTER_USER);
 
   const registrationValidationSchema = Yup.object({
     username: Yup.string().min(7, 'Username must be at least 7 characters').required('Username is required'),
@@ -32,26 +43,21 @@ function RegisterForm() {
     validationSchema: registrationValidationSchema,
     onSubmit: async (values) => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/users/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(values)
+        const { data } = await registerUser({
+          variables: { ...values }
         });
-        
-        const data = await response.json();
-        if (response.ok) {
-          toast.success(data.message);
+
+        if (data.registerUser.success) {
+          toast.success(data.registerUser.message);
           setTimeout(() => navigate('/login'), 500);
         } else {
-          toast.error(data.message);
+          toast.error(data.registerUser.message || 'Something went wrong. Please try again later.');
         }
       } catch (error) {
         toast.error('Something went wrong. Please try again later.');
-        console.error('Error while trying to login:', error);
+        console.error('Error while trying to register:', error);
       }
-    },
+    }
   });
 
   return (

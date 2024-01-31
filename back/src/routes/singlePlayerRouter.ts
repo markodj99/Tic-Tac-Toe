@@ -1,7 +1,7 @@
 import express, { Router } from "express";
-import SinglePlayerController from "../controllers/singlePlayerController";
-import SinglePlayerService from "../services/singlePlayerService";
-import SinglePlayerRepo from "../repos/singlePlayerRepo";
+import SinglePlayerController from "../controllerstemp/singlePlayerController";
+import SinglePlayerService from "../servicestemp/singlePlayerService";
+import SinglePlayerRepo from "../repostemp/singlePlayerRepo";
 import auth from "../middleware/auth";
 
 const singlePlayerController:SinglePlayerController = new SinglePlayerController(new SinglePlayerService(new SinglePlayerRepo()));

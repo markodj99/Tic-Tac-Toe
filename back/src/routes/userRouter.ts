@@ -1,7 +1,7 @@
 import express, { Router } from "express";
-import UserController from "../controllers/userController";
-import UserService from "../services/userService";
-import UserRepo from "../repos/userRepo";
+import UserController from "../controller/userController";
+import UserService from "../servicestemp/userService";
+import UserRepo from "../repostemp/userRepo";
 
 const userController:UserController = new UserController(new UserService(new UserRepo()));
 const userRouter:Router = express.Router();

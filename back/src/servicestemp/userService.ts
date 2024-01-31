@@ -1,6 +1,6 @@
 import Joi from "joi";
 import User from "../models/user";
-import UserRepo from "../repos/userRepo";
+import UserRepo from "../repostemp/userRepo";
 import { LoginParams, RegisterParams, ValidateParamsResult, CustomUserRouterResponse } from "../types/types";
 import * as bcrypt from "bcrypt";
 import * as jwt from 'jsonwebtoken';
