@@ -25,7 +25,7 @@ class MultiPlayerService{
         ];
 
         dotenv.config();
-        this.privateKey = process.env.PRIVATEKEY || 'key';
+        this.privateKey = process.env.PRIVATE_KEY || 'key';
     }
 
     async hasGame(token:string):Promise<HasGameResponse> {
@@ -81,24 +81,24 @@ class MultiPlayerService{
         return decoded.id;
     }
 
-    async getState(gameId:string, token:string):Promise<GameState> {
-        const userId = this.getUserId(token);
+    async getState(gameId:string):Promise<GameState> {
         const game:MultiPlayerTTT | null = await this.multiPlayerRepo.getGameById(parseInt(gameId, 10));
+        let joiner = 'null';
+        if ((game?.get('Joiner') as User) !== null) joiner = (game?.get('Joiner') as User).get('username') as string;
+        const turnToMoveId = game?.get('turnToMove') === 'creator' ? game?.get('creatorId') as number : game?.get('joinerId') as number;
 
         return {
+            creatorId: game?.get('creatorId') as number,
+            joinerId: (game?.get('joinerId') as number) === null ? -1 : (game?.get('joinerId') as number),
+            creatorSymbol: game?.get('creatorSymbol') as string,
+            joinerSymbol: game?.get('joinerSymbol') as string,
+            turnToMove: turnToMoveId,
             moves: game?.get('moves') as string[],
             boardState: game?.get('boardState') as string [],
-            turnToMove: (game?.get('turnToMove') === 'creator' && game?.get('creatorId') === userId) ||
-                        (game?.get('turnToMove') === 'joiner' && game?.get('joinerId') === userId),
-            symbol: game?.get('creatorId') === userId ? game?.get('creatorSymbol') as string : game?.get('joinerSymbol') as string,
-            player: game?.get('creatorId') === userId ? 'creator' : 'joiner',
-            canPlay: game?.get('joinerId') !== null,
-            playerId: userId
         };
     }
 
-    async makeMove(gameId: string, token:string, boardState:string[], moves:string[]):Promise<UpdatedGameStatus> {
-        const userId = this.getUserId(token);
+    async makeMove(gameId: string, userId:number, boardState:string[], moves:string[]):Promise<UpdatedGameStatus> {
         const game:MultiPlayerTTT | null = await this.multiPlayerRepo.getGameById(parseInt(gameId, 10));
 
         const winner = this.checkWinner(boardState);

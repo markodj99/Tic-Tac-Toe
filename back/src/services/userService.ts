@@ -29,8 +29,8 @@ class UserService{
 
         dotenv.config();
         this.saltNum = process.env.SALT ? parseInt(process.env.SALT, 10) : 10;
-        this.privateKey = process.env.PRIVATEKEY || 'key';
-        this.expiresIn = process.env.EXPIRESIN || '1h';
+        this.privateKey = process.env.PRIVATE_KEY || 'key';
+        this.expiresIn = process.env.EXPIRES_IN || '1h';
     }
 
     async processLogin(params:LoginParams):Promise<CustomUserRouterResponse> {

@@ -29,17 +29,17 @@ export function onConnect(socket: Socket) {
     }
 
     try {
-        socket.on('getState', async (gameId: string, token:string) => {
-            const gameState:GameState = await multiPlayerController.getState(gameId, token);
-            socket.emit('getStateResponse', gameState);
+        socket.on('getState', async (gameId: string) => {
+            const gameState:GameState = await multiPlayerController.getState(gameId);
+            io.to(gameId).emit('getStateResponse', gameState);
         });
     } catch (error) {
         console.error('Error when user tried to get game state:', error);
     }
 
     try {
-        socket.on('makeMove', async (gameId: string, token:string, boardState:string[], moves:string[]) => {
-            const newGameState:UpdatedGameStatus = await multiPlayerController.makeMove(gameId, token, boardState, moves);
+        socket.on('makeMove', async (gameId: string, userId:number, boardState:string[], moves:string[]) => {
+            const newGameState:UpdatedGameStatus = await multiPlayerController.makeMove(gameId, userId, boardState, moves);
             io.to(gameId).emit('makeMoveResponse', newGameState);
         });
     } catch (error) {
