@@ -3,6 +3,11 @@ export interface RegistrationResult {
     message: string;
 }
 
+export interface LoginResult {
+    success: boolean;
+    message: string;
+}
+
 export interface RegisterParams {
     username: string,
     email: string;
@@ -13,4 +18,9 @@ export interface RegisterParams {
 export interface ValidateParamsResult {
     result: boolean,
     message: string
+}
+
+export interface LoginParams {
+    email: string;
+    password: string
 }

@@ -4,7 +4,7 @@ import UserRepo from "../repo/userRepo";
 import * as bcrypt from "bcrypt";
 import * as jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
-import { RegisterParams, RegistrationResult, ValidateParamsResult } from "../types/graphqlTypes";
+import { LoginParams, LoginResult, RegisterParams, RegistrationResult, ValidateParamsResult } from "../types/graphqlTypes";
 
 class UserService{
     private userRepo: UserRepo;
@@ -33,33 +33,33 @@ class UserService{
         this.expiresIn = process.env.EXPIRES_IN || '1h';
     }
 
-    // async processLogin(params:LoginParams):Promise<CustomUserRouterResponse> {
-    //     const loginParamsResult:ValidateParamsResult = await this.validateLoginParams(params);
-    //     if (!loginParamsResult.result) return { statusCode: 400, message: loginParamsResult.message };
+    async processLogin(params:LoginParams):Promise<LoginResult> {
+        const loginParamsResult:ValidateParamsResult = await this.validateLoginParams(params);
+        if (!loginParamsResult.result) return { success: false, message: loginParamsResult.message };
 
-    //     const user:User | null = await this.userRepo.getUserByEmail(params.email);
-    //     if (!user) return { statusCode: 400, message: 'Wrong email or password, please try again.' };
+        const user:User | null = await this.userRepo.getUserByEmail(params.email);
+        if (!user) return { success: false, message: 'Wrong email or password, please try again.' };
 
-    //     const passwordsMatch:boolean = await bcrypt.compare(params.password, user.getDataValue('password'));
-    //     if (!passwordsMatch)  return { statusCode: 400, message: 'Wrong password or password, please try again.' };
-    //     return { statusCode: 200, message: this.generateJWT(user.getDataValue('id'), user.getDataValue('username')) };
-    // }
+        const passwordsMatch:boolean = await bcrypt.compare(params.password, user.getDataValue('password'));
+        if (!passwordsMatch)  return { success: false, message: 'Wrong password or password, please try again.' };
+        return { success: true, message: this.generateJWT(user.getDataValue('id'), user.getDataValue('username')) };
+    }
 
-    // private async validateLoginParams(params:LoginParams):Promise<ValidateParamsResult> {
-    //     const validation = this.loginValidationSchema.validate(params);
-    //     if(validation.error) return { result: false, message: validation.error.details[0].message };
-    //     return { result: true, message: 'Valid request.' };
-    // }
+    private async validateLoginParams(params:LoginParams):Promise<ValidateParamsResult> {
+        const validation = this.loginValidationSchema.validate(params);
+        if(validation.error) return { result: false, message: validation.error.details[0].message };
+        return { result: true, message: 'Valid request.' };
+    }
 
-    // private generateJWT(id:number, username:string):string {
-    //     return jwt.sign({
-    //         id: id,
-    //         username: username
-    //     },
-    //     this.privateKey, {
-    //         expiresIn: this.expiresIn
-    //     });
-    // }
+    private generateJWT(id:number, username:string):string {
+        return jwt.sign({
+            id: id,
+            username: username
+        },
+        this.privateKey, {
+            expiresIn: this.expiresIn
+        });
+    }
 
     async processRegister(params:RegisterParams):Promise<RegistrationResult> {
         const loginParamsResult:ValidateParamsResult = await this.validateRegisterParams(params);

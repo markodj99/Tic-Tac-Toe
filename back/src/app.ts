@@ -21,7 +21,6 @@ app.use(cors({origin: 'http://localhost:3000'}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
-//app.use('/api/users', userRouter);
 app.use('/api/sp-game', singlePlayerRouter);
 app.use('/api/mp-game', multiPlayerRouter);
 //app.use(express.static('public'));

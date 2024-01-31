@@ -9,9 +9,20 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import toast from 'react-hot-toast';
+import { gql, useMutation } from '@apollo/client';
+
+const LOGIN_USER = gql`
+  mutation LoginUser($email: String!, $password: String!) {
+    loginUser(email: $email, password: $password) {
+      success
+ 
+    }
+  }
+`;
 
 function LoginForm() {
   const navigate = useNavigate();
+  const [loginUser] = useMutation(LOGIN_USER);
 
   const validationSchema = Yup.object({
     email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -26,23 +37,18 @@ function LoginForm() {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/users/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(values)
+        const { data } = await loginUser({
+          variables: { ...values }
         });
-        
-        const data = await response.json();
-        if (response.ok) {
-          const jwt = data.message;
+
+        if (data.loginUser.success) {
+          const jwt = data.loginUser.message;
           localStorage.setItem('token', jwt);
 
           toast.success('Successful login!');
           setTimeout(() => navigate('/'), 500);
         } else {
-          toast.error(data.message);
+          toast.error(data.loginUser.message || 'Something went wrong. Please try again later.');
         }
       } catch (error) {
         toast.error('Something went wrong. Please try again later.');
