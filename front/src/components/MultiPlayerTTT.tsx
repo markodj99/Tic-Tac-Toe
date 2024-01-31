@@ -14,7 +14,7 @@ function MultiPlayerTTT() {
   useEffect(() => {
     const hasGame = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/mp-game/has-game', {
+        const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/has-game`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ function MultiPlayerTTT() {
 
   const handleChooseSymbolClick = async (symbol:string) => {
     try {
-      const response = await fetch('http://localhost:5000/api/mp-game/create-new', {
+      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/create-new`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

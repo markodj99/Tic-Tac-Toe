@@ -17,7 +17,7 @@ function GameList() {
 
   const getAllOngoingGames = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/mp-game/get-all-existing-games', {
+      const response = await fetch( `${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/get-all-existing-games`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ function GameList() {
 
   const handleJoinClick = async (id:number) => {
      try {
-      const response = await fetch('http://localhost:5000/api/mp-game/join-game', {
+      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/join-game`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

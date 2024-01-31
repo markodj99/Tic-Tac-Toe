@@ -25,11 +25,8 @@ function LoginForm() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const apiUrl = process.env.REACT_APP_API_URL;
-      const apiPort = process.env.REACT_APP_API_PORT;
-      const endPoint = `${apiUrl}:${apiPort}`
       try {
-        const response = await fetch(`${endPoint}/api/users/login`, {
+        const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/users/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

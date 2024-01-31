@@ -145,7 +145,6 @@ function Game() {
       let userId = 0;
       if ('id' in decoded) userId = decoded.id as number;
 
-      const token = localStorage.getItem('token');
       const gameId = localStorage.getItem('gameId');
       socket.emit('makeMove', gameId, userId, newBoard, newMoves);
     }

@@ -33,7 +33,7 @@ function History() {
 
     const getAllFinishedMpGames = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/mp-game/get-all-finished', {
+            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/get-all-finished`, {
                 method: 'GET',
                 headers: {
                 'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ function History() {
 
     const getAllFinishedSpGames = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/sp-game/get-all-finished', {
+            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/get-all-finished`, {
                 method: 'GET',
                 headers: {
                 'Content-Type': 'application/json',

@@ -14,7 +14,7 @@ function SinglePlayerTTT() {
 
   const getGame = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/sp-game/create-or-get', {
+      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/create-or-get`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ function SinglePlayerTTT() {
 
   const setSymbol = async (symbol:string) => {
     try {
-      const response = await fetch('http://localhost:5000/api/sp-game/set-symbol', {
+      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/set-symbol`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ function SinglePlayerTTT() {
 
   const makeMove = async (updatedBoardState:string[], updatedMoves:string[]) => {
     try {
-      const response = await fetch('http://localhost:5000/api/sp-game/make-move', {
+      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/make-move`, {
         method: 'PUT', 
         headers: {
           'Content-Type': 'application/json',

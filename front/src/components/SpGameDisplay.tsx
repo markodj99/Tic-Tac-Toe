@@ -25,7 +25,7 @@ function SpGameDisplay() {
 
     const getGame = async (id:string) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/sp-game/get-one-finished/${id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/get-one-finished/${id}`, {
                 method: 'GET',
                 headers: {
                 'Content-Type': 'application/json',
