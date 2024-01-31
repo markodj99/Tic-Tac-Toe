@@ -36,19 +36,19 @@ To run this project, you will need to add the following environment variables to
 
 `SALT`
 
-`PRIVATEKEY`
+`PRIVATE_KEY`
 
-`EXPIRESIN`
+`EXPIRES_IN`
 
-`DATABASENAME`
+`DATABASE_NAME`
 
-`DATABASEUSERNAME`
+`DATABASE_USERNAME`
 
-`DATABASEPASSWORD`
+`DATABASE_PASSWORD`
 
-`DATABASEPORT`
+`DATABASE_PORT`
 
-`DATABASEHOST`
+`DATABASE_HOST`
 
 Install dependencies
 
@@ -79,6 +79,12 @@ Go to frontend directory
 ```bash
   cd ./front
 ```
+
+## Environment Variables
+
+To run this project, you will need to add the following environment variables to your .env file
+
+`REACT_APP_API_ENDPOINT`
 
 Install dependencies
 
@@ -114,10 +120,6 @@ To run this project locally, you will need to install the following applications
 
 `Docker Desktop`
 
-Change the following environment variable
-
-`DATABASEHOST='localhost' => DATABASEHOST='database'`
-
 Clone the project
 
 ```bash
@@ -140,6 +142,12 @@ Start docker container in detached mode
 
 ```bash
   docker-compose up -d
+```
+
+If backend port is changed
+
+```bash
+  docker-compose up --build
 ```
 
 Stop docker container
