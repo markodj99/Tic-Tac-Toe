@@ -50,6 +50,17 @@ SinglePlayerTTT.init({
     tableName: 'SinglePlayerTTT'
 });
 
+SinglePlayerTTT.belongsTo(User, {
+    foreignKey: 'playerId',
+    as: 'Player'
+});
+
+User.hasMany(SinglePlayerTTT, {
+    foreignKey: 'playerId',
+    as: 'SinglePlayerGames',
+});
+  
+
 export const upSinglePlayerTTT = async (): Promise<void> => {
     await SinglePlayerTTT.sync({ force: false });
 };

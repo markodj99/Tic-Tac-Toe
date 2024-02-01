@@ -173,8 +173,8 @@ class MultiPlayerService{
         const games:SinglePlayerTTT[] = await this.multiPlayerRepo.getAllFinishedByUserId(userId);
 
         const filteredGames:MpGameList[] = games.map((game, index) => {
-            const creator = (game.get('Creator') as User).get('username') as string;
-            const joiner = (game.get('Joiner') as User).get('username') as string;
+            const creator = (game.get('creator') as User).get('username') as string;
+            const joiner = (game.get('joiner') as User).get('username') as string;
             const joinerId = game.get('joinerId');
 
             let winner = '';

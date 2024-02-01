@@ -121,12 +121,12 @@ class MultiPlayerRepo {
                 include: [
                     {
                       model: User,
-                      as: 'Creator',
+                      as: 'creator',
                       attributes: ['username']
                     },
                     {
                       model: User,
-                      as: 'Joiner',
+                      as: 'joiner',
                       attributes: ['username']
                     }
                 ],

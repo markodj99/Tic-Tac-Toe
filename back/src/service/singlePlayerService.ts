@@ -1,13 +1,10 @@
-import SinglePlayerRepo from "../repostemp/singlePlayerRepo";
-import * as jwt from 'jsonwebtoken';
-import { CustomSPGameRouterResponse, NewBoard, SpGameDisplayData, SpGameList } from "../types/types";
+import SinglePlayerRepo from "../repo/singlePlayerRepo";
 import SinglePlayerTTT from "../models/singlePlayerTTT";
-import * as dotenv from 'dotenv';
+import { SPGameResponse, SinglePlayer, NewBoard } from "../types/graphqlTypes";
 
 class SinglePlayerService{
     private singlePlayerRepo: SinglePlayerRepo;
     private winningCombos:number[][];
-    private privateKey:string;
 
     constructor(singlePlayerRepo:SinglePlayerRepo) {
         this.singlePlayerRepo = singlePlayerRepo;
@@ -21,14 +18,9 @@ class SinglePlayerService{
             [0, 4, 8],
             [2, 4, 6],
         ];
-
-        dotenv.config();
-        this.privateKey = process.env.PRIVATE_KEY || 'key';
     }
 
-    async createOrGetGame(token:string):Promise<CustomSPGameRouterResponse> {
-        const userId = this.getUserId(token);
-        
+    async createOrGetGame(userId:number):Promise<SinglePlayer> {
         let game:SinglePlayerTTT | null;
         if (await this.singlePlayerRepo.hasOngoingGame(userId)) game = await this.singlePlayerRepo.getOngoingGameByUserId(userId);
         else game = await this.singlePlayerRepo.createNewGame(userId);
@@ -41,17 +33,15 @@ class SinglePlayerService{
         };
     }
 
-    async setSymbol(token:string, computerSymbol:string):Promise<number> {
-        const userId = this.getUserId(token);
-        
+    async setSymbol(userId:number, computerSymbol:string):Promise<boolean> {
         let game:SinglePlayerTTT | null = await this.singlePlayerRepo.getOngoingGameByUserId(userId);
         const response:SinglePlayerTTT | null = await this.singlePlayerRepo.updateGame(game, {computerSymbol: computerSymbol});
         
-        return response ? 200 : 400;
+        return response ? true : false;
     }
 
-    async makeMove(token:string, boardState:string[], moves:string[]):Promise<CustomSPGameRouterResponse> {
-        let game:SinglePlayerTTT | null = await this.singlePlayerRepo.getOngoingGameByUserId(this.getUserId(token));
+    async makeMove(userId:number, boardState:string[], moves:string[]):Promise<SPGameResponse> {
+        let game:SinglePlayerTTT | null = await this.singlePlayerRepo.getOngoingGameByUserId(userId);
         const computerSymbol:string = game?.get('computerSymbol') as string;
 
         const winner = this.checkWinner(boardState);
@@ -61,7 +51,7 @@ class SinglePlayerService{
     }
 
     private async winnerCase(boardState:string[], moves:string[], winner:string, computerSymbol:string,
-        game:SinglePlayerTTT | null):Promise<CustomSPGameRouterResponse> {
+        game:SinglePlayerTTT | null):Promise<SPGameResponse> {
 
         let actualWinner:string = winner === computerSymbol ? 'computer' : 'user';
         const response:SinglePlayerTTT | null = await this.singlePlayerRepo.updateGame(game, {
@@ -79,7 +69,7 @@ class SinglePlayerService{
     }
 
     private async winnerOrDraw(boardState:string[], moves:string[], game:SinglePlayerTTT | null,
-        computerSymbol:string):Promise<CustomSPGameRouterResponse> {
+        computerSymbol:string):Promise<SPGameResponse> {
 
         const {newBoardState, newMoves} = this.generateRandomComputerMove(boardState, moves, game?.get('computerSymbol') as string);
         
@@ -100,7 +90,7 @@ class SinglePlayerService{
         }
     }
 
-    private async draw(boardState:string[], moves:string[], game:SinglePlayerTTT | null):Promise<CustomSPGameRouterResponse> {
+    private async draw(boardState:string[], moves:string[], game:SinglePlayerTTT | null):Promise<SPGameResponse> {
         const response = await this.singlePlayerRepo.updateGame(game, {
             boardState: boardState,
             moves: moves,
@@ -147,40 +137,35 @@ class SinglePlayerService{
         return {newBoardState: newBoardState, newMoves: newMoves};
     }
 
-    private getUserId(token:string):number {
-        const decoded:any = jwt.verify(token, this.privateKey); // sigurno uvek ima id property
-        return decoded.id;
-    }
-
-    async getAllFinished(token:string):Promise<SpGameList[]> {
-        const userId = this.getUserId(token);
-        const games:SinglePlayerTTT[] = await this.singlePlayerRepo.getAllFinishedByUserId(userId);
+    // async getAllFinished(token:string):Promise<SpGameList[]> {
+    //     const userId = this.getUserId(token);
+    //     const games:SinglePlayerTTT[] = await this.singlePlayerRepo.getAllFinishedByUserId(userId);
         
-        const filteredGames:SpGameList[] = games.map((game, index) => {
-            const userSymbol = game.get('computerSymbol') === 'X' ? 'O' : 'X';
+    //     const filteredGames:SpGameList[] = games.map((game, index) => {
+    //         const userSymbol = game.get('computerSymbol') === 'X' ? 'O' : 'X';
 
-            return {
-              index,
-              gameId: game.get('id') as number,
-              winner: game.get('winner') as string,
-              yourSymbol: userSymbol,
-              computerSymbol: game.get('computerSymbol') as string,
-              updatedAt: game.get('updatedAt') as string
-            };
-        });
+    //         return {
+    //           index,
+    //           gameId: game.get('id') as number,
+    //           winner: game.get('winner') as string,
+    //           yourSymbol: userSymbol,
+    //           computerSymbol: game.get('computerSymbol') as string,
+    //           updatedAt: game.get('updatedAt') as string
+    //         };
+    //     });
         
-        return filteredGames;
-    }
+    //     return filteredGames;
+    // }
 
-    async getOneFinished(gameId:number):Promise<SpGameDisplayData> {
-        const game:SinglePlayerTTT | null = await this.singlePlayerRepo.getFinishedGameById(gameId);
+    // async getOneFinished(gameId:number):Promise<SpGameDisplayData> {
+    //     const game:SinglePlayerTTT | null = await this.singlePlayerRepo.getFinishedGameById(gameId);
         
-        return {
-            moves: game?.get('moves') as string[],
-            computerSymbol: game?.get('computerSymbol') as string,
-            winner: game?.get('winner') as string
-        };
-    }
+    //     return {
+    //         moves: game?.get('moves') as string[],
+    //         computerSymbol: game?.get('computerSymbol') as string,
+    //         winner: game?.get('winner') as string
+    //     };
+    // }
 }
 
 export default SinglePlayerService;

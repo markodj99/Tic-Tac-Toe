@@ -15,7 +15,7 @@ const LOGIN_USER = gql`
   mutation LoginUser($email: String!, $password: String!) {
     loginUser(email: $email, password: $password) {
       success
- 
+      message
     }
   }
 `;
@@ -40,7 +40,7 @@ function LoginForm() {
         const { data } = await loginUser({
           variables: { ...values }
         });
-
+        
         if (data.loginUser.success) {
           const jwt = data.loginUser.message;
           localStorage.setItem('token', jwt);

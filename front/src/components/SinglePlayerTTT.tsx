@@ -1,8 +1,38 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Box, Button, Grid, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import toast from 'react-hot-toast';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { JwtPayload, jwtDecode } from 'jwt-decode';
+
+const GET_OR_CREATE_SINGLE_PLAYER = gql`
+  query GetOrCreateSinglePlayer($userId: ID!) {
+    getOrCreateSinglePlayer(userId: $userId) {
+      moves
+      computerSymbol
+      boardState
+      winner
+    }
+  }
+`;
+
+const SET_SYMBOL = gql`
+  mutation SetSymbol($userId: ID!, $computerSymbol: String!) {
+    setSymbol(userId: $userId, computerSymbol: $computerSymbol)
+  }
+`;
+
+const MAKE_MOVE = gql`
+  mutation MakeMove($userId: ID!, $updatedBoardState: [String!]!, $updatedMoves: [String!]!) {
+    makeMove(userId: $userId, updatedBoardState: $updatedBoardState, updatedMoves: $updatedMoves) {
+      moves
+      computerSymbol
+      boardState
+      winner
+    }
+  }
+`;
 
 function SinglePlayerTTT() {
   const [userSymbol, setUserSymbol] = useState('X');
@@ -12,53 +42,53 @@ function SinglePlayerTTT() {
   const [message, setMessage] = useState('Single Player');
   const [visibility, setVisibility] = useState(true);
 
-  const getGame = async () => {
+  const jwt = localStorage.getItem('token') || 'a';
+  let decoded:JwtPayload = jwtDecode(jwt);
+  let userId = 0;
+  if ('id' in decoded) userId = decoded.id as number;
+  const { error, refetch } = useQuery(GET_OR_CREATE_SINGLE_PLAYER, {
+    variables: { userId }, skip: true
+  });
+
+  const [setSymbolMutation] = useMutation(SET_SYMBOL);
+  const [makeMoveMutation] = useMutation(MAKE_MOVE);
+
+  const getGame = useCallback(async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/create-or-get`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      if (response.ok) {
-        setBoard(data.boardState);
+      const result = await refetch();
+      const gameData = result.data.getOrCreateSinglePlayer;
 
-        if (data.computerSymbol === 'null') {
-          setVisibility(true);
-          setMessage('Please Choose Symbol');
-        }
-        else {
-          if (data.computerSymbol === 'X') setUserSymbol('O');
-          else setUserSymbol('X');
-          setVisibility(false);
-          setMessage('Single Player');
-        }
-
-        setMoves(data.moves);
-      } else {
-        toast.error('Something went wrong. Please try again later.');
+      if (error) {
+        toast.error(`Error: ${error.message}`);
+        console.error('Error while trying to fetch game data:', error);
+        return;
       }
+
+      setBoard(gameData.boardState);
+      if (gameData.computerSymbol === 'null') {
+        setVisibility(true);
+        setMessage('Please Choose Symbol');
+      }
+      else {
+        if (gameData.computerSymbol === 'X') setUserSymbol('O');
+        else setUserSymbol('X');
+        setVisibility(false);
+        setMessage('Single Player');
+      }
+      setMoves(gameData.moves);
     } catch (error) {
       toast.error('Something went wrong. Please try again later.');
       console.error('Error while trying to fetch game data:', error);
     }
-  };
+  }, [error, refetch]);
 
   const setSymbol = async (symbol:string) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/set-symbol`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({computerSymbol: symbol})
+      const { data } = await setSymbolMutation({
+        variables: { userId, computerSymbol: symbol }
       });
       
-      if (response.ok) {
+      if (data.setSymbol) {
         setVisibility(false);
         setMessage('Single Player');
       } else {
@@ -72,36 +102,26 @@ function SinglePlayerTTT() {
 
   const makeMove = async (updatedBoardState:string[], updatedMoves:string[]) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/make-move`, {
-        method: 'PUT', 
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({boardState: updatedBoardState, moves: updatedMoves})
+      const { data } = await makeMoveMutation({
+        variables: { userId, updatedBoardState, updatedMoves }
       });
       
-      const data = await response.json();
-      if (response.ok) {
-        setMoves(data.moves);
-        setTimeout(() => setBoard(data.boardState), 200);
-        
-        if (data.winner !== 'ongoing') {
-          if (data.winner === 'user') toast.success(`You've won. Congratulations!`);
-          else if (data.winner === 'computer') toast.error(`You've lost.`);
-          else toast.success(`Game ended in a draw.`, {
-            style: {
-                    border: '2px solid black',
-                    background: 'yellow'
-                   },
-            duration: 1200
-          });
-
-          setTimeout(async () => await getGame(), 700);
-        }
-      } else {
-        toast.error('Something went wrong. Please try again later.');
+      setMoves(data.makeMove.moves);
+      setTimeout(() => setBoard(data.makeMove.boardState), 200);
+      
+      if (data.makeMove.winner !== 'ongoing') {
+        if (data.makeMove.winner === 'user') toast.success(`You've won. Congratulations!`);
+        else if (data.makeMove.winner === 'computer') toast.error(`You've lost.`);
+        else toast.success(`Game ended in a draw.`, {
+          style: {
+                  border: '2px solid black',
+                  background: 'yellow'
+                  },
+          duration: 1200
+        });
       }
+
+      setTimeout(async () => await getGame(), 700);
     } catch (error) {
       toast.error('Something went wrong. Please try again later.');
       console.error('Error while trying fetch game data:', error);
@@ -112,7 +132,7 @@ function SinglePlayerTTT() {
 		getGame();
 
 		return () => {};
-  }, []);
+  }, [getGame]);
 
   const handleChooseSymbolClick = async (symbol:string) => {
     if (symbol === 'X') {

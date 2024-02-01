@@ -1,7 +1,6 @@
 import express, { Application } from 'express';
 import { createServer, Server as HTTPServer } from 'http';
 import { Server } from 'socket.io';
-import userRouter from './routes/userRouter';
 import singlePlayerRouter from './routes/singlePlayerRouter';
 import multiPlayerRouter, { onConnect } from './routes/multiPlayerRouter';
 import { authenticateDb }  from './database/dbHandler';
@@ -10,8 +9,8 @@ import cors from 'cors';
 import runManualMigrations from './database/runManualMigrations';
 import * as dotenv from 'dotenv';
 import { ApolloServer } from 'apollo-server-express';
-import { typeDefs } from './graphql/schema'; // adjust the path
-import { resolvers } from './graphql/resolver'; // adjust the path
+import { typeDefs } from './graphql/schema';
+import { resolvers } from './graphql/resolver';
 
 dotenv.config();
 const port:number = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
@@ -25,10 +24,9 @@ app.use('/api/sp-game', singlePlayerRouter);
 app.use('/api/mp-game', multiPlayerRouter);
 //app.use(express.static('public'));
 
-
 const apolloServer = new ApolloServer({
-  typeDefs,
-  resolvers,
+	typeDefs,
+	resolvers,
 });
 apolloServer.applyMiddleware({ app, path: '/graphql'});
 

@@ -86,6 +86,16 @@ MultiPlayerTTT.belongsTo(User, {
     as: 'Joiner'
 });
 
+User.hasMany(MultiPlayerTTT, {
+    foreignKey: 'creatorId',
+    as: 'MultiPlayerCreatedGames',
+});
+
+User.hasMany(MultiPlayerTTT, {
+    foreignKey: 'joinerId',
+    as: 'MultiPlayerJoinedGames',
+});
+
 
 export const upMultiPlayerTTT = async (): Promise<void> => {
     await MultiPlayerTTT.sync({ force: false });
