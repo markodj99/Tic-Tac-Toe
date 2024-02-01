@@ -1,51 +1,62 @@
 import { gql } from 'apollo-server-express';
 
 const typeDefs = gql`
-  type User {
+  type UserModel {
     id: ID
     username: String
     email: String
     password: String
-    SinglePlayerGames: [SinglePlayerTTT]
-    MultiPlayerCreatedGames: [MultiPlayerTTT]
-    MultiPlayerJoinedGames: [MultiPlayerTTT]
+    SinglePlayerGames: [SinglePlayer]
+    MultiPlayerCreatedGames: [MultiPlayer]
+    MultiPlayerJoinedGames: [MultiPlayer]
   }
 
-  type SinglePlayerTTT {
-    id: Int
+  type SinglePlayer {
+    index: Int
+    id: ID
     playerId: Int
     moves: [String]
     computerSymbol: String
+    yourSymbol: String
     winner: String
     boardState: [String]
-    Player: User
+    Player: UserModel
+    updatedAt: String
   }
 
-  type MultiPlayerTTT {
-    id: Int
+  type MultiPlayer {
+    index: Int
+    id: ID
     creatorId: Int
     joinerId: Int
     creatorSymbol: String
     joinerSymbol: String
+    yourSymbol: String
+    opponentSymbol: String
     turnToMove: String
     moves: [String]
-    winner: String
+    winner: Int
+    winnerString: String
     boardState: [String]
-    Creator: User
-    Joiner: User
+    Creator: UserModel
+    Joiner: UserModel
+    updatedAt: String
   }
 
   type Query {
-    getUsers: [User]!
-    getUser(id: ID!): User
-    getOrCreateSinglePlayer(userId: ID): SinglePlayerTTT!
+    getUser(userId: ID!): UserModel!
+    getOrCreateSinglePlayer(userId: ID!): SinglePlayer!
+    hasGame(userId: ID!): HasGameResponse!
+    getExistingGames: [GameListData!]!
   }
 
   type Mutation {
-    registerUser(username: String!, email: String!, password: String!, repeatpassword: String!): RegistrationResult
-    loginUser(email: String!, password: String!): LoginResult
-    setSymbol(userId: ID!, computerSymbol: String!): Boolean
-    makeMove(userId: ID!, updatedBoardState: [String!]!, updatedMoves: [String!]!) : SPGameResponse
+    registerUser(username: String!, email: String!, password: String!, repeatpassword: String!): RegistrationResult!
+    loginUser(email: String!, password: String!): LoginResult!
+    setSymbol(userId: ID!, computerSymbol: String!): Boolean!
+    makeMove(userId: ID!, updatedBoardState: [String!]!, updatedMoves: [String!]!) : SPGameResponse!
+    createNewGame(userId: ID!, creatorSymbol: String!): HasGameResponse!
+    joinGame(userId: ID!, gameId: ID!): JoinGameResponse!
   }
 
   type SPGameResponse {
@@ -63,6 +74,24 @@ const typeDefs = gql`
   type LoginResult {
     success: Boolean!
     message: String!
+  }
+
+  type HasGameResponse {
+    condition: Boolean!
+    gameId: Int!
+  }
+
+  type GameListData {
+    index: Int!
+    gameId: Int!
+    creatorName: String!
+    creatorSymbol: String!
+    yourSymbol: String!
+  }
+
+  type JoinGameResponse {
+    condition: Boolean!
+    gameId: Int!
   }
 `;
 

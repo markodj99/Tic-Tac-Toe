@@ -4,7 +4,9 @@ import UserRepo from "../repo/userRepo";
 import * as bcrypt from "bcrypt";
 import * as jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
-import { LoginParams, LoginResult, RegisterParams, RegistrationResult, ValidateParamsResult } from "../types/graphqlTypes";
+import { LoginParams, LoginResult, MultiPlayer, RegisterParams, RegistrationResult, SinglePlayer, UserModel, ValidateParamsResult } from "../types/graphqlTypes";
+import SinglePlayerTTT from "../models/singlePlayerTTT";
+import MultiPlayerTTT from "../models/multiPlayerTTT";
 
 class UserService{
     private userRepo: UserRepo;
@@ -85,6 +87,83 @@ class UserService{
         if(validation.error) return { result: false, message: validation.error.details[0].message };
         if (params.password !== params.repeatpassword) return { result: false, message: 'Passwords must match.' };
         return { result: true, message: 'Valid request.' };
+    }
+
+    async getFinishedGames(userId:number):Promise<UserModel> {
+        const user = await this.userRepo.getUserById(userId);
+
+        return {
+            SinglePlayerGames: this.getSinglePlayerGames(user?.get('SinglePlayerGames') as SinglePlayerTTT[]),
+            MultiPlayerCreatedGames: this.getMultiPlayerCreatedGames(user?.get('MultiPlayerCreatedGames') as MultiPlayerTTT[], userId),
+            MultiPlayerJoinedGames: this.getMultiPlayerJoinedGames(user?.get('MultiPlayerJoinedGames') as MultiPlayerTTT[], userId)
+        };
+    }
+
+    private getSinglePlayerGames(spGames:SinglePlayerTTT[]):SinglePlayer[] {
+        return spGames.map((game, index) => {
+            const userSymbol = game.get('computerSymbol') === 'X' ? 'O' : 'X';
+            return {
+                index,
+                id: game.get('id') as number,
+                winner: game.get('winner') as string,
+                yourSymbol: userSymbol,
+                computerSymbol: game.get('computerSymbol') as string,
+                updatedAt: (game.get('updatedAt') as string).toString(),
+                moves: game.get('moves') as string[]
+            };
+        });
+    }
+
+    private getMultiPlayerCreatedGames(mpGames:MultiPlayerTTT[], userId:number):MultiPlayer[] {
+        return mpGames.map((game, index) => {
+            let winner = '';
+            const winnerDb = game.get('winner') as number;
+            if (winnerDb === 0) winner = 'Draw';
+            else if (winnerDb == userId) winner = 'You';
+            else winner = (game.get('Joiner') as User).get('username') as string;
+            
+            const yourSymboll:string = game.get('creatorSymbol') as string;
+            const opponentSymboll:string = game.get('joinerSymbol') as string;
+
+            return {
+                index,
+                id: game.get('id') as number,
+                winnerString: winner,
+                yourSymbol: yourSymboll,
+                opponentSymbol: opponentSymboll,
+                Joiner: {
+                    username: (game.get('Joiner') as User).get('username') as string,
+                },
+                moves: game?.get('moves') as string[],
+                updatedAt: (game.get('updatedAt') as string).toString()
+            };
+        });
+    }
+
+    private getMultiPlayerJoinedGames(mpGames:MultiPlayerTTT[], userId:number):MultiPlayer[] {
+        return mpGames.map((game, index) => {
+            let winner = '';
+            const winnerDb = game.get('winner') as number;
+            if (winnerDb === 0) winner = 'Draw';
+            else if (winnerDb == userId) winner = 'You';
+            else winner = (game.get('Creator') as User).get('username') as string;
+
+            const yourSymboll:string = game.get('joinerSymbol') as string;
+            const opponentSymboll:string = game.get('creatorSymbol') as string;
+
+            return {
+                index,
+                id: game.get('id') as number,
+                winnerString: winner,
+                yourSymbol: yourSymboll,
+                opponentSymbol: opponentSymboll,
+                Creator: {
+                    username: (game.get('Creator') as User).get('username') as string,
+                },
+                moves: game?.get('moves') as string[],
+                updatedAt: (game.get('updatedAt') as string).toString()
+            };
+        });
     }
 }
 

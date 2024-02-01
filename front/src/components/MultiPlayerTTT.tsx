@@ -1,48 +1,73 @@
 import { Box, Button, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import CloseIcon from '@mui/icons-material/Close';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate } from "react-router-dom";
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { JwtPayload, jwtDecode } from "jwt-decode";
+
+const HAS_GAME = gql`
+  query HasGame($userId: ID!) {
+    hasGame(userId: $userId) {
+      condition
+      gameId
+    }
+  }
+`;
+
+const CREATE_NEW_GAME = gql`
+  mutation CreateNewGame($userId: ID!, $creatorSymbol: String!) {
+    createNewGame(userId: $userId, creatorSymbol: $creatorSymbol) {
+      condition
+      gameId
+    }
+  }
+`;
 
 function MultiPlayerTTT() {
   const navigate = useNavigate();
 
   const [renderChoicePrompt, setRenderChoicePrompt] = useState(false);
-  const [renderNewGamePrompt, setRenderNewGamePrompt] = useState(false); 
+  const [renderNewGamePrompt, setRenderNewGamePrompt] = useState(false);
+
+  const jwt = localStorage.getItem('token') || 'a';
+  let decoded:JwtPayload = jwtDecode(jwt);
+  let userId = 0;
+  if ('id' in decoded) userId = decoded.id as number;
+  const { error, refetch } = useQuery(HAS_GAME, {
+    variables: { userId }, skip: true
+  });
+
+  const [createNewGame] = useMutation(CREATE_NEW_GAME);
+
+  const hasGame = useCallback(async () => {
+    try {
+      const result = await refetch();
+      const data = result.data.hasGame;
+      if (error) {
+        toast.error(`Error: ${error.message}`);
+        console.error('Error while trying to fetch game data:', error);
+        return;
+      }
+
+      if (!data.condition) {
+        setRenderChoicePrompt(true);
+      } else {
+        localStorage.setItem('gameId', data.gameId.toString());
+        setTimeout(() => navigate('/mp-game/game'), 500);
+      }
+    } catch (error) {
+      toast.error('Something went wrong. Please try again later.');
+      console.error('Error while trying to fetch game data:', error);
+    }
+  }, [error, refetch, navigate]);
 
   useEffect(() => {
-    const hasGame = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/has-game`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `${localStorage.getItem('token')}`
-          }
-        });
-        
-        const data = await response.json();
-        if (response.ok) {
-          if (!data.condition) {
-            setRenderChoicePrompt(true);
-          } else {
-            localStorage.setItem('gameId', data.gameId.toString());
-            setTimeout(() => navigate('/mp-game/game'), 500);
-          }
-        } else {
-          toast.error('Something went wrong. Please try again later.');
-        }
-      } catch (error) {
-        toast.error('Something went wrong. Please try again later.');
-        console.error('Error while trying to fetch game data:', error);
-      }
-    };
-
 		hasGame();
 
 		return () => {};
-  }, [navigate]);
+  }, [hasGame]);
 
   const handleClickNewGame = () => {
     setRenderChoicePrompt(false);
@@ -53,24 +78,14 @@ function MultiPlayerTTT() {
 
   const handleChooseSymbolClick = async (symbol:string) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/create-new`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ creatorSymbol: symbol })
+      const { data } = await createNewGame({
+        variables: { userId, creatorSymbol: symbol }
       });
       
-      const data = await response.json();
-      if (response.ok) {
-        if (data.condition) {
-          localStorage.setItem('gameId', data.gameId.toString());
-          toast.success('Game created successfully.');
-          setTimeout(() => navigate('/mp-game/game'), 200);
-        }
-      } else {
-        toast.error('Something went wrong. Please try again later.');
+      if (data.createNewGame.condition) {
+        localStorage.setItem('gameId', data.createNewGame.gameId.toString());
+        toast.success('Game created successfully.');
+        setTimeout(() => navigate('/mp-game/game'), 200);
       }
     } catch (error) {
       toast.error('Something went wrong. Please try again later.');

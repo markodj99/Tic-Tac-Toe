@@ -1,8 +1,10 @@
 import { AppBar, Toolbar, Stack, Button, Icon, Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import HistoryIcon from '@mui/icons-material/History';
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { gql, useQuery } from '@apollo/client';
+import { JwtPayload, jwtDecode } from "jwt-decode";
 
 export interface MpGameList {
     index: number,
@@ -11,7 +13,8 @@ export interface MpGameList {
     yourSymbol: string,
     opponentSymbol: string,
     opponent:string,
-    updatedAt: string
+    updatedAt: string,
+    moves:string[]
 }
 
 export interface SpGameList {
@@ -20,67 +23,156 @@ export interface SpGameList {
     winner: string,
     yourSymbol: string,
     computerSymbol: string,
-    updatedAt: string
+    updatedAt: string,
+    moves:string[]
 }
+
+const GET_USER = gql`
+  query GetUser($userId: ID!) {
+    getUser(userId: $userId) {
+        SinglePlayerGames {
+            index
+            id
+            winner
+            yourSymbol
+            computerSymbol
+            updatedAt
+            moves
+        }
+        MultiPlayerCreatedGames {
+            index
+            id
+            winnerString
+            yourSymbol
+            opponentSymbol
+            Joiner {
+                username
+            }
+            moves
+            updatedAt
+        }
+        MultiPlayerJoinedGames {
+            index
+            id
+            winnerString
+            yourSymbol
+            opponentSymbol
+            Creator {
+                username
+            }
+            moves
+            updatedAt
+        }
+    }
+  }
+`;
 
 function History() {
     const navigate = useNavigate();
-
     const [showMultiPlayer, setShowMultiPlayer] = useState(true);
 
     const [mpGames, setMpGames] = useState<MpGameList[]>([]);
     const [spGames, setSpGames] = useState<SpGameList[]>([]);
 
-    const getAllFinishedMpGames = async () => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/get-all-finished`, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (response.ok) {
-                setMpGames((await response.json()).data);
-            } else {
-                setMpGames([]);
-                toast.error('Something went wrong. Please try again later.');
-            }
-        } catch (error) {
-            toast.error('Something went wrong. Please try again later.');
-            console.error('Error while trying to fetch games data:', error);
-        }
-    };
+    const jwt = localStorage.getItem('token') || 'a';
+    let decoded:JwtPayload = jwtDecode(jwt);
+    let userId = 0;
+    if ('id' in decoded) userId = decoded.id as number;
 
-    const getAllFinishedSpGames = async () => {
+    const { error, refetch } = useQuery(GET_USER, {
+        variables: { userId }, skip: true
+      });
+
+    const getAllOngoingGames = useCallback(async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/get-all-finished`, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (response.ok) {
-                setSpGames((await response.json()).data);
-            } else {
-                setSpGames([]);
-                toast.error('Something went wrong. Please try again later.');
-            }
+          const result = await refetch();
+          const data = result.data.getUser;
+
+          if (error) {
+            toast.error(`Error: ${error.message}`);
+            console.error('Error while trying to fetch game data:', error);
+            return;
+          }
+
+          const mpCreated:MpGameList[] =  data.MultiPlayerCreatedGames.map((game:any) => {
+            return {
+                index: game.index,
+                gameId: game.id,
+                winner: game.winnerString,
+                yourSymbol: game.yourSymbol,
+                opponentSymbol: game.opponentSymbol,
+                opponent: game.Joiner.username,
+                updatedAt: game.updatedAt,
+                moves: game.moves
+            };
+          });
+
+          const mpJoined:MpGameList[] =  data.MultiPlayerJoinedGames.map((game:any) => {
+            return {
+                index: game.index,
+                gameId: game.id,
+                winner: game.winnerString,
+                yourSymbol: game.yourSymbol,
+                opponentSymbol: game.opponentSymbol,
+                opponent: game.Creator.username,
+                updatedAt: game.updatedAt,
+                moves: game.moves
+            };
+          });
+
+          const allMpGames = [...mpJoined, ...mpCreated].sort((a, b) => b.gameId - a.gameId)
+          .map((game, index) => {
+            return {
+                index: index,
+                gameId: game.gameId,
+                winner: game.winner,
+                yourSymbol: game.yourSymbol,
+                opponentSymbol: game.opponentSymbol,
+                opponent: game.opponent,
+                updatedAt: game.updatedAt,
+                moves: game.moves
+            };
+          });
+
+          setMpGames(allMpGames);
+
+          const spGames:SpGameList[] =  data.SinglePlayerGames.map((game:any) => {
+            return {
+                index: game.index,
+                gameId: game.id,
+                winner: game.winner,
+                yourSymbol: game.yourSymbol,
+                computerSymbol: game.computerSymbol,
+                updatedAt: game.updatedAt,
+                moves: game.moves
+            };
+          });
+
+          const allSpGames = [...spGames].sort((a, b) => b.gameId - a.gameId)
+          .map((game, index) => {
+            return {
+                index: index,
+                gameId: game.gameId,
+                winner: game.winner,
+                yourSymbol: game.yourSymbol,
+                computerSymbol: game.computerSymbol,
+                updatedAt: game.updatedAt,
+                moves: game.moves
+            };
+          });
+
+          setSpGames(allSpGames);
         } catch (error) {
-            toast.error('Something went wrong. Please try again later.');
-            console.error('Error while trying to fetch games data:', error);
+          toast.error('Something went wrong. Please try again later.');
+          console.error('Error while trying to fetch game history data:', error);
         }
-    };
+      }, [error, refetch]);
 
     useEffect(() => {
-        getAllFinishedMpGames();
-        getAllFinishedSpGames();
+        getAllOngoingGames();
 
         return () => {};
-    },[]);
+    },[getAllOngoingGames]);
 
     const getFormatedDate = (dateString:string):string => {
         let date = new Date(dateString);
@@ -136,7 +228,7 @@ function History() {
                                 <TableCell>{getFormatedDate(row.updatedAt)}</TableCell>
                                 <TableCell align="center">
                                     <Button variant="contained" color="primary"
-                                    onClick={()=> setTimeout(() => navigate(`/history/mp/${row.gameId}`), 200)}>
+                                    onClick={()=> setTimeout(() => navigate(`/history/mp/${row.gameId}`, {state: row}), 200)}>
                                         Details
                                     </Button>
                                 </TableCell>
@@ -171,7 +263,7 @@ function History() {
                                     <TableCell>{getFormatedDate(row.updatedAt)}</TableCell>
                                     <TableCell align="center">
                                         <Button variant="contained" color="primary" 
-                                        onClick={()=> setTimeout(() => navigate(`/history/sp/${row.gameId}`), 200)}>
+                                        onClick={()=> setTimeout(() => navigate(`/history/sp/${row.gameId}`, {state: row}), 200)}>
                                             Details
                                         </Button>
                                     </TableCell>

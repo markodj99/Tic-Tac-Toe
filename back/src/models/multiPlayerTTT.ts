@@ -96,7 +96,6 @@ User.hasMany(MultiPlayerTTT, {
     as: 'MultiPlayerJoinedGames',
 });
 
-
 export const upMultiPlayerTTT = async (): Promise<void> => {
     await MultiPlayerTTT.sync({ force: false });
 };

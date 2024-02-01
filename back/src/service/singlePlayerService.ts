@@ -136,36 +136,6 @@ class SinglePlayerService{
 
         return {newBoardState: newBoardState, newMoves: newMoves};
     }
-
-    // async getAllFinished(token:string):Promise<SpGameList[]> {
-    //     const userId = this.getUserId(token);
-    //     const games:SinglePlayerTTT[] = await this.singlePlayerRepo.getAllFinishedByUserId(userId);
-        
-    //     const filteredGames:SpGameList[] = games.map((game, index) => {
-    //         const userSymbol = game.get('computerSymbol') === 'X' ? 'O' : 'X';
-
-    //         return {
-    //           index,
-    //           gameId: game.get('id') as number,
-    //           winner: game.get('winner') as string,
-    //           yourSymbol: userSymbol,
-    //           computerSymbol: game.get('computerSymbol') as string,
-    //           updatedAt: game.get('updatedAt') as string
-    //         };
-    //     });
-        
-    //     return filteredGames;
-    // }
-
-    // async getOneFinished(gameId:number):Promise<SpGameDisplayData> {
-    //     const game:SinglePlayerTTT | null = await this.singlePlayerRepo.getFinishedGameById(gameId);
-        
-    //     return {
-    //         moves: game?.get('moves') as string[],
-    //         computerSymbol: game?.get('computerSymbol') as string,
-    //         winner: game?.get('winner') as string
-    //     };
-    // }
 }
 
 export default SinglePlayerService;

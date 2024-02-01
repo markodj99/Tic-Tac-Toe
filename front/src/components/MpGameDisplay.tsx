@@ -1,22 +1,26 @@
 import { Box, Button, Grid, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import toast from "react-hot-toast";
 
-interface MpGameDisplayData {
-  moves: string[],
-  winner: string,
-  yourSymbol: string,
-  opponentSymbol: string,
-  opponent:string,
+export interface MpGame {
+    index: number,
+    gameId: number,
+    winner: string,
+    yourSymbol: string,
+    opponentSymbol: string,
+    opponent:string,
+    updatedAt: string,
+    moves: string[]
 }
 
 function SpGameDisplay() {
-    const { id } = useParams();
+    const navigate = useNavigate();
+    const game = useLocation().state as MpGame;
     const [board, setBoard] = useState<string[]>([]);
     const [moves, setMoves] = useState<string[]>([]);
     const [iterate, setIterate] = useState(-1);
@@ -26,46 +30,34 @@ function SpGameDisplay() {
     const [winner, setWinner] = useState('user');
     const [opponent, setOpponent] = useState('Opponent');
 
-    const getGame = async (id:string) => {
+    useEffect(() => {
+        if (!game) {
+            setTimeout(() => navigate(`/history`), 200);
+            return;
+        };
+
+        setBoard(Array(9).fill('null'));
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/get-one-finished/${id}`, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `${localStorage.getItem('token')}`
-                }
-            });
-            
-            const data:MpGameDisplayData = await response.json();
-            if (response.ok) {
-                setMoves(data.moves);
-                setIterate(0);
-                let maxIt = 0;
-                for (let i = 0; i < data.moves.length; i++) {
-                    if (data.moves[i] === 'null') break;
-                    maxIt++;
-                }
-                setMaxIterate(maxIt)
-                setWinner(data.winner);
-                setOpponentSymbol(data.opponentSymbol);
-                if (data.opponentSymbol === 'X') setUserSymbol('O');
-                else setUserSymbol('X');
-                setOpponent(data.opponent);
-            } else {
-              toast.error('Something went wrong. Please try again later.');
+            setMoves(game.moves);
+            setIterate(0);
+            let maxIt = 0;
+            for (let i = 0; i < game.moves.length; i++) {
+                if (game.moves[i] === 'null') break;
+                maxIt++;
             }
+            setMaxIterate(maxIt)
+            setWinner(game.winner);
+            setOpponentSymbol(game.opponentSymbol);
+            if (game.opponentSymbol === 'X') setUserSymbol('O');
+            else setUserSymbol('X');
+            setOpponent(game.opponent);
         } catch (error) {
             toast.error('Something went wrong. Please try again later.');
             console.error('Error while trying to get game data:', error);
         }
-    };
-
-    useEffect(() => {
-        setBoard(Array(9).fill('null'));
-        getGame(id === undefined ? '0' : id);
 
         return () => {};
-    }, [id]);
+    }, [game, navigate]);
 
     const goBack = () => {
         const index = parseInt(moves[iterate - 1][4], 10);

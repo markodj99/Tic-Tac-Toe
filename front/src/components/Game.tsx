@@ -7,7 +7,6 @@ import { Socket, io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { JwtPayload, jwtDecode } from 'jwt-decode';
 
-
 interface GameState {
   creatorId: number,
   joinerId: number,

@@ -1,9 +1,32 @@
 import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Container, Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { JwtPayload, jwtDecode } from "jwt-decode";
 
-export interface GameListData {
+const GET_EXISTING_GAMES = gql`
+  query GetExistingGames {
+    getExistingGames {
+      index
+      gameId
+      creatorName
+      creatorSymbol
+      yourSymbol
+    }
+  }
+`;
+
+const JOIN_GAME = gql`
+  mutation JoinGame($userId: ID!, $gameId: ID!) {
+    joinGame(userId: $userId, gameId: $gameId) {
+      condition
+      gameId
+    }
+  }
+`;
+
+interface GameListData {
   index: number,
   gameId: number,
   creatorName: string,
@@ -15,56 +38,53 @@ function GameList() {
   const navigate = useNavigate();
   const [data, setData] = useState<GameListData[]>([]);
 
-  const getAllOngoingGames = async () => {
+  const { error, refetch } = useQuery(GET_EXISTING_GAMES, {
+    skip: true
+  });
+
+  const jwt = localStorage.getItem('token') || 'a';
+  let decoded:JwtPayload = jwtDecode(jwt);
+  let userId = 0;
+  if ('id' in decoded) userId = decoded.id as number;
+
+  const [joinGameMutation] = useMutation(JOIN_GAME);
+
+  const getAllOngoingGames = useCallback(async () => {
     try {
-      const response = await fetch( `${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/get-all-existing-games`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (response.ok) {
-        setData((await response.json()).data);
-      } else {
-        setData([]);
-        toast.error('Something went wrong. Please try again later.');
+      const result = await refetch();
+      const data:GameListData[] = result.data.getExistingGames;
+
+      if (error) {
+        toast.error(`Error: ${error.message}`);
+        console.error('Error while trying to fetch game data:', error);
+        return;
       }
+    
+      setData(data);
     } catch (error) {
       toast.error('Something went wrong. Please try again later.');
       console.error('Error while trying to fetch games data:', error);
     }
-  };
+  }, [error, refetch]);
 
   useEffect(() => {
     getAllOngoingGames();
 
     return () => {};
-  }, []);
+  }, [getAllOngoingGames]);
 
   const handleJoinClick = async (id:number) => {
      try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/join-game`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({gameId: id})
+      const { data } = await joinGameMutation({
+        variables: { userId, gameId: id }
       });
-      
-      const gameJoined:boolean = (await response.json()).gameJoined;
-      if (response.ok) {
-        if(gameJoined) {
-          toast.success('Game joined successfully.');
-          localStorage.setItem('gameId', id.toString());
-          setTimeout(() => navigate('/mp-game/game'), 500);
-        } else {
-          toast.error('Could not join game at the moment please try again later.')
-        }
+
+      if(data.joinGame.condition) {
+        toast.success('Game joined successfully.');
+        localStorage.setItem('gameId', data.joinGame.gameId.toString());
+        setTimeout(() => navigate('/mp-game/game'), 500);
       } else {
-        toast.error('Something went wrong. Please try again later.');
+        toast.error('Could not join game at the moment please try again later.')
       }
     } catch (error) {
       toast.error('Something went wrong. Please try again later.');

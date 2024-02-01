@@ -1,15 +1,12 @@
-import { GameListData, GameState, HasGameResponse, MpGameDisplayData, MpGameList, UpdatedGameStatus } from "../types/types";
 import MultiPlayerTTT from "../models/multiPlayerTTT";
 import SinglePlayerTTT from "../models/singlePlayerTTT";
 import User from "../models/user";
-import MultiPlayerRepo from "../repostemp/multiPlayerRepo";
-import * as jwt from 'jsonwebtoken';
-import * as dotenv from 'dotenv';
+import MultiPlayerRepo from "../repo/multiPlayerRepo";
+import { GameListData, GameState, HasGameResponse, JoinGameResponse, UpdatedGameStatus } from "../types/graphqlTypes";
 
 class MultiPlayerService{
     private multiPlayerRepo: MultiPlayerRepo;
     private winningCombos:number[][];
-    private privateKey:string;
 
     constructor(multiPlayerRepo:MultiPlayerRepo) {
         this.multiPlayerRepo = multiPlayerRepo;
@@ -23,23 +20,18 @@ class MultiPlayerService{
             [0, 4, 8],
             [2, 4, 6],
         ];
-
-        dotenv.config();
-        this.privateKey = process.env.PRIVATE_KEY || 'key';
     }
 
-    async hasGame(token:string):Promise<HasGameResponse> {
-        const userId = this.getUserId(token);
+    async hasGame(userId:number):Promise<HasGameResponse> {
         const game:MultiPlayerTTT | null = await this.multiPlayerRepo.getOngoingGameByUserId(userId);
 
         return {
             condition: game !== null,
-            gameId: game?.get('id') as number
+            gameId: game?.get('id') === undefined ? -1 : game?.get('id') as number
         };
     }
 
-    async createNewGame(token:string, creatorSymbol:string):Promise<HasGameResponse> {
-        const userId = this.getUserId(token);
+    async createNewGame(userId:number, creatorSymbol:string):Promise<HasGameResponse> {
         const joinerSymbol = creatorSymbol === 'X' ? 'O' : 'X';
         const game:SinglePlayerTTT = await this.multiPlayerRepo.createNewGame(userId, creatorSymbol, joinerSymbol);
 
@@ -65,20 +57,17 @@ class MultiPlayerService{
         return filteredGames;
     }
 
-    async joinGame(token:string, gameId:number):Promise<boolean> {
-        const joinerId = this.getUserId(token);
+    async joinGame(userId:number, gameId:number):Promise<JoinGameResponse> {
         let game:MultiPlayerTTT | null = await this.multiPlayerRepo.getGameById(gameId);
         const response:MultiPlayerTTT | null = await this.multiPlayerRepo.updateGame(game, {
             id: gameId,
-            joinerId: joinerId
+            joinerId: userId
         });
         
-        return  response !== null;
-    }
-
-    private getUserId(token:string):number {
-        const decoded:any = jwt.verify(token, this.privateKey); // sigurno uvek ima id property
-        return decoded.id;
+        return {
+            condition: response !== null,
+            gameId: gameId
+        };
     }
 
     async getState(gameId:string):Promise<GameState> {
@@ -166,74 +155,6 @@ class MultiPlayerService{
     private isDraw(boardState:string[]){
         for (let i = 0; i < boardState.length; i++) if (boardState[i] === 'null') return false;
         return true;
-    }
-
-    async getAllFinished(token:string):Promise<MpGameList[]> {
-        const userId = this.getUserId(token);
-        const games:SinglePlayerTTT[] = await this.multiPlayerRepo.getAllFinishedByUserId(userId);
-
-        const filteredGames:MpGameList[] = games.map((game, index) => {
-            const creator = (game.get('creator') as User).get('username') as string;
-            const joiner = (game.get('joiner') as User).get('username') as string;
-            const joinerId = game.get('joinerId');
-
-            let winner = '';
-            const winnerDb = game.get('winner') as number;
-            if (winnerDb === 0) winner = 'Draw';
-            else if (winnerDb === userId) winner = 'You';
-            else {
-                if (joinerId === userId) winner = creator;
-                else winner = joiner;
-            }
-
-            const yourSymboll:string = joinerId === userId ? game.get('joinerSymbol') as string : game.get('creatorSymbol') as string;
-            const opponentSymboll:string = joinerId === userId ? game.get('creatorSymbol') as string : game.get('joinerSymbol') as string;
-
-            const opponent = joinerId === userId ? creator : joiner;
-
-            return {
-              index,
-              gameId: game.get('id') as number,
-              winner: winner,
-              yourSymbol: yourSymboll,
-              opponentSymbol: opponentSymboll,
-              opponent: opponent,
-              updatedAt: game.get('updatedAt') as string
-            };
-        });
-        
-        return filteredGames;
-    }
-
-    async getOneFinished(gameId:number, token:string):Promise<MpGameDisplayData> {
-        const userId = this.getUserId(token);
-        const game:SinglePlayerTTT | null = await this.multiPlayerRepo.getFinishedGameById(gameId);
-        
-        const creator = (game?.get('Creator') as User).get('username') as string;
-        const joiner = (game?.get('Joiner') as User).get('username') as string;
-        const joinerId = game?.get('joinerId');
-
-        let winner = '';
-        const winnerDb = game?.get('winner') as number;
-        if (winnerDb === 0) winner = 'draw';
-        else if (winnerDb === userId) winner = 'you';
-        else {
-            if (joinerId === userId) winner = creator;
-            else winner = joiner;
-        }
-
-        const yourSymboll:string = joinerId === userId ? game?.get('joinerSymbol') as string : game?.get('creatorSymbol') as string;
-        const opponentSymboll:string = joinerId === userId ? game?.get('creatorSymbol') as string : game?.get('joinerSymbol') as string;
-
-        const opponent = joinerId === userId ? creator : joiner;
-
-        return {
-            moves: game?.get('moves') as string[],
-            winner: winner,
-            yourSymbol: yourSymboll,
-            opponentSymbol: opponentSymboll,
-            opponent: opponent
-        };
     }
 }
 

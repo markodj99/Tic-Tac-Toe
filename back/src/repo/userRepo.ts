@@ -1,18 +1,86 @@
-import { RegisterParams } from "../types/types";
+import { RegisterParams } from "../types/graphqlTypes";
 import User from "../models/user";
-import { Sequelize, Transaction } from "sequelize";
+import { Op, Sequelize, Transaction } from "sequelize";
 import seq from "../database/dbHandler";
+import SinglePlayerTTT from "../models/singlePlayerTTT";
+import MultiPlayerTTT from "../models/multiPlayerTTT";
 
 class UserRepo {
     private db:Sequelize = seq;
 
     constructor() {}
 
+    async getUserById(userId:number):Promise<User | null>
+    {
+        try {
+            const user = await User.findOne({
+                where: { id: userId },
+                include: [
+                    {
+                      model: MultiPlayerTTT,
+                      as: 'MultiPlayerCreatedGames',
+                      where: {
+                        [Op.or]: [
+                            { creatorId: userId },
+                        ],
+                        winner: {
+                            [Op.not]: -1
+                        }
+                      },
+                      include: [
+                        {
+                            model: User,
+                            as: 'Joiner',
+                            attributes: ['username']
+                        }
+                    ],
+                    required: false
+                    },
+                    {
+                        model: MultiPlayerTTT,
+                        as: 'MultiPlayerJoinedGames',
+                        where: {
+                            [Op.or]: [
+                                { joinerId: userId }
+                            ],
+                            winner: {
+                                [Op.not]: -1
+                            }
+                        },
+                        include: [
+                            {
+                                model: User,
+                                as: 'Creator',
+                                attributes: ['username']
+                            }
+                        ],
+                        required: false
+                    },
+                    {
+                        model: SinglePlayerTTT,
+                        as: 'SinglePlayerGames',
+                        where: {
+                            playerId: userId,
+                            winner: {
+                                [Op.not]: 'ongoing'
+                            }
+                        },
+                        required: false
+                    },
+                  ]
+            });
+            return user;
+        } catch (error) {
+            console.error('Error while loading user from db by id:', error);
+            throw error;
+        }
+    }
+
     async getUserByEmail(email:string):Promise<User | null>
     {
         try {
             const user = await User.findOne({
-                where: { email },
+                where: { email }
             });
             return user;
         } catch (error) {
@@ -24,7 +92,7 @@ class UserRepo {
     async getUserByUsername(username:string):Promise<User | null> {
         try {
             const user = await User.findOne({
-                where: { username },
+                where: { username }
             });
             return user;
         } catch (error) {

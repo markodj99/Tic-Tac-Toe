@@ -1,5 +1,5 @@
 import UserService from "../service/userService";
-import { LoginResult, RegistrationResult } from "../types/graphqlTypes";
+import { LoginResult, RegistrationResult, UserModel } from "../types/graphqlTypes";
 
 class UserController{
     private userService: UserService
@@ -29,6 +29,15 @@ class UserController{
                 success: false,
                 message:'Something went wrong. Please try again later.'
             };
+        }
+    }
+
+    async getFinishedGames(userId:number):Promise<UserModel> {
+        try {
+            return await this.userService.getFinishedGames(userId);
+        } catch (error) {
+            console.error('Error while getting finished games:', error);
+            throw new Error('Error while getting finished games.');
         }
     }
 }
