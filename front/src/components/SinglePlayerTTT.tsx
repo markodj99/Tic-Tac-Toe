@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Grid, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import toast from 'react-hot-toast';
+import { fetchWithIntercep } from '../FetchWithIntercep';
+import { useNavigate } from 'react-router-dom';
 
 function SinglePlayerTTT() {
+  const navigate = useNavigate();
   const [userSymbol, setUserSymbol] = useState('X');
   const [moves, setMoves] = useState(Array(9).fill('null'));
   const [board, setBoard] = useState(Array(9).fill('null'));
@@ -12,18 +15,11 @@ function SinglePlayerTTT() {
   const [message, setMessage] = useState('Single Player');
   const [visibility, setVisibility] = useState(true);
 
-  const getGame = async () => {
+  const getGame = useCallback(async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/create-or-get`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      if (response.ok) {
+      const {isOk, data} = await fetchWithIntercep<any>('api/sp-game/create-or-get', 'GET', navigate);      
+   
+      if (isOk) {
         setBoard(data.boardState);
 
         if (data.computerSymbol === 'null') {
@@ -45,20 +41,13 @@ function SinglePlayerTTT() {
       toast.error('Something went wrong. Please try again later.');
       console.error('Error while trying to fetch game data:', error);
     }
-  };
+  }, [navigate]);
 
   const setSymbol = async (symbol:string) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/set-symbol`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({computerSymbol: symbol})
-      });
+      const {isOk} = await fetchWithIntercep<any>('api/sp-game/set-symbol', 'PUT', navigate, {computerSymbol: symbol}); 
       
-      if (response.ok) {
+      if (isOk) {
         setVisibility(false);
         setMessage('Single Player');
       } else {
@@ -72,17 +61,9 @@ function SinglePlayerTTT() {
 
   const makeMove = async (updatedBoardState:string[], updatedMoves:string[]) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/make-move`, {
-        method: 'PUT', 
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({boardState: updatedBoardState, moves: updatedMoves})
-      });
+      const {isOk, data} = await fetchWithIntercep<any>('api/sp-game/make-move', 'PUT', navigate, {boardState: updatedBoardState, moves: updatedMoves});
       
-      const data = await response.json();
-      if (response.ok) {
+      if (isOk) {
         setMoves(data.moves);
         setTimeout(() => setBoard(data.boardState), 200);
         
@@ -112,7 +93,7 @@ function SinglePlayerTTT() {
 		getGame();
 
 		return () => {};
-  }, []);
+  }, [getGame]);
 
   const handleChooseSymbolClick = async (symbol:string) => {
     if (symbol === 'X') {

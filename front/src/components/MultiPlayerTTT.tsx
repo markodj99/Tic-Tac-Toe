@@ -1,9 +1,10 @@
 import { Box, Button, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import CloseIcon from '@mui/icons-material/Close';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate } from "react-router-dom";
+import { fetchWithIntercep } from "../FetchWithIntercep";
 
 function MultiPlayerTTT() {
   const navigate = useNavigate();
@@ -11,38 +12,31 @@ function MultiPlayerTTT() {
   const [renderChoicePrompt, setRenderChoicePrompt] = useState(false);
   const [renderNewGamePrompt, setRenderNewGamePrompt] = useState(false); 
 
-  useEffect(() => {
-    const hasGame = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/has-game`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `${localStorage.getItem('token')}`
-          }
-        });
-        
-        const data = await response.json();
-        if (response.ok) {
-          if (!data.condition) {
-            setRenderChoicePrompt(true);
-          } else {
-            localStorage.setItem('gameId', data.gameId.toString());
-            setTimeout(() => navigate('/mp-game/game'), 500);
-          }
-        } else {
-          toast.error('Something went wrong. Please try again later.');
-        }
-      } catch (error) {
-        toast.error('Something went wrong. Please try again later.');
-        console.error('Error while trying to fetch game data:', error);
-      }
-    };
+  const hasGame = useCallback(async () =>{
+    try {
+      const {isOk, data} = await fetchWithIntercep<any>('api/mp-game/has-game', 'GET', navigate);   
 
+      if (isOk) {
+        if (!data.condition) {
+          setRenderChoicePrompt(true);
+        } else {
+          localStorage.setItem('gameId', data.gameId.toString());
+          setTimeout(() => navigate('/mp-game/game'), 500);
+        }
+      } else {
+        toast.error('Something went wrong. Please try again later.');
+      }
+    } catch (error) {
+      toast.error('Something went wrong. Please try again later.');
+      console.error('Error while trying to fetch game data:', error);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
 		hasGame();
 
 		return () => {};
-  }, [navigate]);
+  }, [hasGame]);
 
   const handleClickNewGame = () => {
     setRenderChoicePrompt(false);
@@ -53,17 +47,9 @@ function MultiPlayerTTT() {
 
   const handleChooseSymbolClick = async (symbol:string) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/create-new`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ creatorSymbol: symbol })
-      });
-      
-      const data = await response.json();
-      if (response.ok) {
+      const {isOk, data} = await fetchWithIntercep<any>('api/mp-game/create-new', 'POST', navigate, { creatorSymbol: symbol });   
+
+      if (isOk) {
         if (data.condition) {
           localStorage.setItem('gameId', data.gameId.toString());
           toast.success('Game created successfully.');
@@ -132,21 +118,6 @@ function MultiPlayerTTT() {
   
   return (
     renderChoicePrompt ? choicePrompt : renderNewGamePrompt ? newGamePrompt : <></>
-                                                                              // <Box
-                                                                              //   sx={{
-                                                                              //     textAlign: "center",
-                                                                              //     display: "flex",
-                                                                              //     flexDirection: "column",
-                                                                              //     alignItems: "center",
-                                                                              //     justifyContent: "center",
-                                                                              //     margin: "auto",
-                                                                              //     marginTop: "30vh"
-                                                                              //   }}
-                                                                              // >
-                                                                              //   <Typography variant="h2" color="error">
-                                                                              //     Something Went Wrong. Please Try Again Later
-                                                                              //   </Typography>
-                                                                              // </Box>
   );
 };
 

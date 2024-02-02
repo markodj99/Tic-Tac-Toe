@@ -1,8 +1,9 @@
 import { AppBar, Toolbar, Stack, Button, Icon, Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import HistoryIcon from '@mui/icons-material/History';
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { fetchWithIntercep } from "../FetchWithIntercep";
 
 export interface MpGameList {
     index: number,
@@ -25,24 +26,16 @@ export interface SpGameList {
 
 function History() {
     const navigate = useNavigate();
-
     const [showMultiPlayer, setShowMultiPlayer] = useState(true);
-
     const [mpGames, setMpGames] = useState<MpGameList[]>([]);
     const [spGames, setSpGames] = useState<SpGameList[]>([]);
 
-    const getAllFinishedMpGames = async () => {
+    const getAllFinished = useCallback(async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/mp-game/get-all-finished`, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `${localStorage.getItem('token')}`
-                }
-            });
+            const {isOk, data} = await fetchWithIntercep<any>('api/mp-game/get-all-finished', 'GET', navigate);
             
-            if (response.ok) {
-                setMpGames((await response.json()).data);
+            if (isOk) {
+                setMpGames(data.data);
             } else {
                 setMpGames([]);
                 toast.error('Something went wrong. Please try again later.');
@@ -51,20 +44,12 @@ function History() {
             toast.error('Something went wrong. Please try again later.');
             console.error('Error while trying to fetch games data:', error);
         }
-    };
 
-    const getAllFinishedSpGames = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/sp-game/get-all-finished`, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `${localStorage.getItem('token')}`
-                }
-            });
+            const {isOk, data} = await fetchWithIntercep<any>('api/sp-game/get-all-finished', 'GET', navigate);
             
-            if (response.ok) {
-                setSpGames((await response.json()).data);
+            if (isOk) {
+                setSpGames(data.data);
             } else {
                 setSpGames([]);
                 toast.error('Something went wrong. Please try again later.');
@@ -73,14 +58,13 @@ function History() {
             toast.error('Something went wrong. Please try again later.');
             console.error('Error while trying to fetch games data:', error);
         }
-    };
+    }, [navigate]);
 
     useEffect(() => {
-        getAllFinishedMpGames();
-        getAllFinishedSpGames();
+        getAllFinished()
 
         return () => {};
-    },[]);
+    },[getAllFinished]);
 
     const getFormatedDate = (dateString:string):string => {
         let date = new Date(dateString);
@@ -136,7 +120,7 @@ function History() {
                                 <TableCell>{getFormatedDate(row.updatedAt)}</TableCell>
                                 <TableCell align="center">
                                     <Button variant="contained" color="primary"
-                                    onClick={()=> setTimeout(() => navigate(`/history/mp/${row.gameId}`), 200)}>
+                                    onClick={()=> setTimeout(() => navigate(`/history/mp/${row.gameId}`, {state: row.gameId}), 200)}>
                                         Details
                                     </Button>
                                 </TableCell>
@@ -171,7 +155,7 @@ function History() {
                                     <TableCell>{getFormatedDate(row.updatedAt)}</TableCell>
                                     <TableCell align="center">
                                         <Button variant="contained" color="primary" 
-                                        onClick={()=> setTimeout(() => navigate(`/history/sp/${row.gameId}`), 200)}>
+                                        onClick={()=> setTimeout(() => navigate(`/history/sp/${row.gameId}`, {state: row.gameId}), 200)}>
                                             Details
                                         </Button>
                                     </TableCell>

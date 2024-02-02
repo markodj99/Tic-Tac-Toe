@@ -12,13 +12,12 @@ services:
       - PORT=5000
       - SALT=10
       - PRIVATE_KEY=secretKey
-      - EXPIRES_IN=365d
+      - EXPIRES_IN=14d
       - DATABASE_NAME=tictactoe
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=strongpassword
       - DATABASE_HOST=database
       - DATABASE_PORT=5432
-      - WAIT_HOSTS=database:5432
     ports:
       - '5000:5000'
 
