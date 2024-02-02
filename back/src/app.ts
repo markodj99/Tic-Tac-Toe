@@ -9,6 +9,8 @@ import * as dotenv from 'dotenv';
 import { ApolloServer } from 'apollo-server-express';
 import { typeDefs } from './graphql/schema';
 import { resolvers, onConnect } from './graphql/resolver';
+import auth from './middleware/auth';
+//import { Context } from './types/graphqlTypes';
 
 dotenv.config();
 const port:number = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
@@ -23,6 +25,7 @@ app.use(express.urlencoded({extended: true}));
 const apolloServer = new ApolloServer({
 	typeDefs,
 	resolvers,
+	context: ({ req }) => auth(req)
 });
 apolloServer.applyMiddleware({ app, path: '/graphql'});
 

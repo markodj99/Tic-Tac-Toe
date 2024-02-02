@@ -42,10 +42,13 @@ function SinglePlayerTTT() {
   const [message, setMessage] = useState('Single Player');
   const [visibility, setVisibility] = useState(true);
 
-  const jwt = localStorage.getItem('token') || 'a';
-  let decoded:JwtPayload = jwtDecode(jwt);
-  let userId = 0;
-  if ('id' in decoded) userId = decoded.id as number;
+  const jwt = localStorage.getItem('token') || null;
+  let userId = -1;
+  if (jwt){
+      let decoded:JwtPayload = jwtDecode(jwt);
+      if ('id' in decoded) userId = decoded.id as number;
+  }
+  
   const { error, refetch } = useQuery(GET_OR_CREATE_SINGLE_PLAYER, {
     variables: { userId }, skip: true
   });

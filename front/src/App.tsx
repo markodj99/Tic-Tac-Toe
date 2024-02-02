@@ -5,7 +5,7 @@ import RegisterForm from "./components/RegisterForm";
 import NotFound from "./components/NotFound";
 import SinglePlayerTTT from "./components/SinglePlayerTTT";
 import MultiPlayerTTT from "./components/MultiPlayerTTT";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "./styles.css";
 import GameList from "./components/GameList";
@@ -13,19 +13,48 @@ import Game from "./components/Game";
 import History from "./components/History";
 import SpGameDisplay from "./components/SpGameDisplay";
 import MpGameDisplay from "./components/MpGameDisplay";
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
-
-
-const client = new ApolloClient({
-  uri: `${process.env.REACT_APP_API_ENDPOINT}/graphql`,
-  cache: new InMemoryCache()
-});
+import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+import { onError } from '@apollo/client/link/error';
 
 function App() {
+  const navigate = useNavigate();
   const isAuthenticated = ():boolean => {
     const token = localStorage.getItem('token');
     return !!token;
   };
+
+  const httpLink = createHttpLink({
+    uri: `${process.env.REACT_APP_API_ENDPOINT}/graphql`
+  });
+
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    if (graphQLErrors) {
+      for (const err of graphQLErrors) {
+        if (err.extensions && err.extensions.code === 'UNAUTHENTICATED') {
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
+      }
+    }
+    if (networkError) console.log(`[Network error]: ${networkError}`);
+  });
+  
+  const authLink = setContext((_, { headers }) => {
+    const token = localStorage.getItem('token');
+  
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `${token}` : '',
+      },
+    };
+  });
+  
+  const client = new ApolloClient({
+    link: errorLink.concat(authLink).concat(httpLink),
+    cache: new InMemoryCache(),
+  });
 
   return (
     <ApolloProvider client={client}>

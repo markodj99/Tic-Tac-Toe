@@ -1,3 +1,5 @@
+import { Request } from "express";
+
 export interface RegistrationResult {
     success: boolean;
     message: string;
@@ -112,4 +114,13 @@ export interface UpdatedGameStatus {
     moves: string[],
     winner: number,
     turnToMove: number
+}
+
+export interface AuthContext {
+    token: string
+}
+
+export interface Context {
+    req: Request,
+    authContext: AuthContext | false
 }

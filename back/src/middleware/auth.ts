@@ -1,19 +1,20 @@
-import { NextFunction, Request, Response } from "express";
+import { Request } from "express";
 import * as jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
+import { AuthContext } from "../types/graphqlTypes";
 
-const auth = async (req:Request, res:Response, next:NextFunction) => {
+const auth = async (req:Request):Promise<AuthContext | false> => {
     const authorizationHeader = req.headers['authorization'];
-    
-    if (!authorizationHeader) return res.status(401).json({ message: 'Access denied. No token provided.' });
-    
+    if (!authorizationHeader) return false;
+  
     dotenv.config();
     const privateKey = process.env.PRIVATE_KEY || 'key';
+  
     try {
-        const token = jwt.verify(authorizationHeader, privateKey);
-        next();
+      const token = jwt.verify(authorizationHeader, privateKey);
+      return { token: authorizationHeader };
     } catch {
-        return res.status(401).json({ message: 'Invalid token.' });
+      return false;
     }
 };
 

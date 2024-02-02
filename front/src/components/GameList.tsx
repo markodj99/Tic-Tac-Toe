@@ -42,10 +42,12 @@ function GameList() {
     skip: true
   });
 
-  const jwt = localStorage.getItem('token') || 'a';
-  let decoded:JwtPayload = jwtDecode(jwt);
-  let userId = 0;
-  if ('id' in decoded) userId = decoded.id as number;
+  const jwt = localStorage.getItem('token') || null;
+  let userId = -1;
+  if (jwt){
+      let decoded:JwtPayload = jwtDecode(jwt);
+      if ('id' in decoded) userId = decoded.id as number;
+  }
 
   const [joinGameMutation] = useMutation(JOIN_GAME);
 

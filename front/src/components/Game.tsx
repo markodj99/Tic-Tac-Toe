@@ -35,10 +35,12 @@ function Game() {
   const [socket, setSocket] = useState<Socket>();
 
   useEffect(() => {
-    const jwt = localStorage.getItem('token') || 'a';
-    let decoded:JwtPayload = jwtDecode(jwt);
-    let userId = 0;
-    if ('id' in decoded) userId = decoded.id as number;
+    const jwt = localStorage.getItem('token') || null;
+    let userId = -1;
+    if (jwt){
+        let decoded:JwtPayload = jwtDecode(jwt);
+        if ('id' in decoded) userId = decoded.id as number;
+    }
 
     const newSocket = io('http://localhost:5000');
     setSocket(newSocket);
@@ -139,10 +141,12 @@ function Game() {
     if (socket) {
       setCanClick(!canClick);
       setMessage('Waiting For An Opponent To Make A Move');
-      const jwt = localStorage.getItem('token') || 'a';
-      let decoded:JwtPayload = jwtDecode(jwt);
-      let userId = 0;
-      if ('id' in decoded) userId = decoded.id as number;
+      const jwt = localStorage.getItem('token') || null;
+      let userId = -1;
+      if (jwt){
+          let decoded:JwtPayload = jwtDecode(jwt);
+          if ('id' in decoded) userId = decoded.id as number;
+      }
 
       const gameId = localStorage.getItem('gameId');
       socket.emit('makeMove', gameId, userId, newBoard, newMoves);

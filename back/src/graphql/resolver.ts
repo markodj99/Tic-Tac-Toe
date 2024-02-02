@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { GameListData, GameState, HasGameResponse, JoinGameResponse, RegistrationResult, SPGameResponse, SinglePlayer, UpdatedGameStatus, UserModel } from '../types/graphqlTypes';
+import { AuthContext, Context, GameListData, GameState, HasGameResponse, JoinGameResponse, RegistrationResult, SPGameResponse, SinglePlayer, UpdatedGameStatus, UserModel } from '../types/graphqlTypes';
 import UserController from "../controller/userController";
 import UserService from "../service/userService";
 import UserRepo from "../repo/userRepo";
@@ -11,83 +11,106 @@ import MultiPlayerService from "../service/multiPlayerService";
 import MultiPlayerRepo from "../repo/multiPlayerRepo";
 import { Socket } from 'socket.io';
 import { io } from '../app';
+import { GraphQLError } from 'graphql';
+import { ApolloError } from 'apollo-server-express';
 
 const userController:UserController = new UserController(new UserService(new UserRepo()));
 const singlePlayerController:SinglePlayerController = new SinglePlayerController(new SinglePlayerService(new SinglePlayerRepo()));
 const multiPlayerController:MultiPlayerController = new MultiPlayerController(new MultiPlayerService(new MultiPlayerRepo()));
 
+interface ResolverContext extends Context, AuthContext {}
+
 const resolvers = {
     Query: {
       getUser: async (
-        parent: any,
+        parent:any,
         args: { userId: number },
-        context: any
+        context: ResolverContext,
+        info: any
       ): Promise<UserModel> => {
-        return await userController.getFinishedGames(args.userId);
+        if (context.token) return await userController.getFinishedGames(args.userId);
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       },
       getOrCreateSinglePlayer: async (
         parent: any,
         args: { userId: number },
-        context: any
+        context: ResolverContext,
+        info: any
       ): Promise<SinglePlayer> => {
-        return await singlePlayerController.createOrGetGame(args.userId);
+        if (context.token) return await singlePlayerController.createOrGetGame(args.userId);
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       },
       hasGame: async (
         parent: any,
         args: { userId: number },
-        context: any
+        context: ResolverContext,
+        info: any
       ): Promise<HasGameResponse> => {
-        return await multiPlayerController.hasGame(args.userId);
+        if (context.token) return await multiPlayerController.hasGame(args.userId);
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       },
       getExistingGames: async (
         parent: any,
-        context: any
+        args: any,
+        context: ResolverContext,
+        info: any
       ): Promise<GameListData[]> => {
-        return await multiPlayerController.getAllExistingGames();
+        if (context.token) return await multiPlayerController.getAllExistingGames();
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       }
     },
     Mutation: {
       registerUser: async (
         parent: any,
         args: { username: string; email: string; password: string, repeatpassword: string },
-        req: Request
+        context: ResolverContext,
+        info: any
       ):Promise<RegistrationResult> => {
         return await userController.register(args.username, args.email, args.password, args.repeatpassword);
       },
       loginUser: async (
         parent: any,
         args: { email: string; password: string },
-        req: Request
+        context: ResolverContext,
+        info: any
       ):Promise<RegistrationResult> => {
         return await userController.login(args.email, args.password);
       },
       setSymbol: async (
         parent: any,
         args: { userId:number, computerSymbol: string },
-        req: Request
+        context: ResolverContext,
+        info: any
       ):Promise<boolean> => {
-        return await singlePlayerController.setSymbol(args.userId, args.computerSymbol);
+        if (context.token) return await singlePlayerController.setSymbol(args.userId, args.computerSymbol);
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       },
       makeMove: async (
         parent: any,
         args: { userId:number, updatedBoardState:string[], updatedMoves:string[] },
-        req: Request
+        context: ResolverContext,
+        info: any
       ):Promise<SPGameResponse> => {
-        return await singlePlayerController.makeMove(args.userId, args.updatedBoardState, args.updatedMoves);
+        if (context.token) return await singlePlayerController.makeMove(args.userId, args.updatedBoardState, args.updatedMoves);
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       },
       createNewGame: async (
         parent: any,
         args: { userId:number, creatorSymbol: string },
-        req: Request
+        context: ResolverContext,
+        info: any
       ):Promise<HasGameResponse> => {
-        return await multiPlayerController.createNewGame(args.userId, args.creatorSymbol);
+        if (context.token) return await multiPlayerController.createNewGame(args.userId, args.creatorSymbol);
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       },
       joinGame: async (
         parent: any,
         args: { userId:number, gameId: number },
-        req: Request
+        context: ResolverContext,
+        info: any
       ):Promise<JoinGameResponse> => {
-        return await multiPlayerController.joinGame(args.userId, args.gameId);
+        if (context.token) return await multiPlayerController.joinGame(args.userId, args.gameId);
+        throw new ApolloError('You are not authenticated to access this data.', 'UNAUTHENTICATED');
       }
     }
 };
