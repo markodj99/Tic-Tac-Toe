@@ -1,7 +1,8 @@
 import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Container, Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { fetchWithIntercep } from "../FetchWithIntercep";
 
 export interface GameListData {
   index: number,
@@ -15,18 +16,12 @@ function GameList() {
   const navigate = useNavigate();
   const [data, setData] = useState<GameListData[]>([]);
 
-  const getAllOngoingGames = async () => {
+  const getAllOngoingGames = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/mp-game/get-all-existing-games', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (response.ok) {
-        setData((await response.json()).data);
+      const {isOk, data} = await fetchWithIntercep<any>('api/mp-game/get-all-existing-games', 'GET', navigate); 
+
+      if (isOk) {
+        setData(data.data);
       } else {
         setData([]);
         toast.error('Something went wrong. Please try again later.');
@@ -35,28 +30,20 @@ function GameList() {
       toast.error('Something went wrong. Please try again later.');
       console.error('Error while trying to fetch games data:', error);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     getAllOngoingGames();
 
     return () => {};
-  }, []);
+  }, [getAllOngoingGames]);
 
   const handleJoinClick = async (id:number) => {
      try {
-      const response = await fetch('http://localhost:5000/api/mp-game/join-game', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({gameId: id})
-      });
-      
-      const gameJoined:boolean = (await response.json()).gameJoined;
-      if (response.ok) {
-        if(gameJoined) {
+      const {isOk, data} = await fetchWithIntercep<any>('api/mp-game/join-game', 'POST', navigate, {gameId: id});
+
+      if (isOk) {
+        if(data.gameJoined) {
           toast.success('Game joined successfully.');
           localStorage.setItem('gameId', id.toString());
           setTimeout(() => navigate('/mp-game/game'), 500);

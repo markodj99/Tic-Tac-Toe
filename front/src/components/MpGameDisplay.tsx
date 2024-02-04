@@ -1,11 +1,12 @@
 import { Box, Button, Grid, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import toast from "react-hot-toast";
+import { fetchWithIntercep } from "../FetchWithIntercep";
 
 interface MpGameDisplayData {
   moves: string[],
@@ -16,7 +17,8 @@ interface MpGameDisplayData {
 }
 
 function SpGameDisplay() {
-    const { id } = useParams();
+    const navigate = useNavigate();
+    const id = useLocation().state as string;
     const [board, setBoard] = useState<string[]>([]);
     const [moves, setMoves] = useState<string[]>([]);
     const [iterate, setIterate] = useState(-1);
@@ -26,31 +28,29 @@ function SpGameDisplay() {
     const [winner, setWinner] = useState('user');
     const [opponent, setOpponent] = useState('Opponent');
 
-    const getGame = async (id:string) => {
+    const getGame = useCallback(async (id:string) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/mp-game/get-one-finished/${id}`, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `${localStorage.getItem('token')}`
-                }
-            });
+            const {isOk, data} = await fetchWithIntercep<MpGameDisplayData>(`api/mp-game/get-one-finished/${id}`, 'GET', navigate);
             
-            const data:MpGameDisplayData = await response.json();
-            if (response.ok) {
-                setMoves(data.moves);
-                setIterate(0);
-                let maxIt = 0;
-                for (let i = 0; i < data.moves.length; i++) {
-                    if (data.moves[i] === 'null') break;
-                    maxIt++;
+ 
+            if (isOk) {
+                if (data) {
+                    setMoves(data.moves);
+                    setIterate(0);
+                    let maxIt = 0;
+                    for (let i = 0; i < data.moves.length; i++) {
+                        if (data.moves[i] === 'null') break;
+                        maxIt++;
+                    }
+                    setMaxIterate(maxIt)
+                    setWinner(data.winner);
+                    setOpponentSymbol(data.opponentSymbol);
+                    if (data.opponentSymbol === 'X') setUserSymbol('O');
+                    else setUserSymbol('X');
+                    setOpponent(data.opponent);
+                } else {
+                    toast.error('Something went wrong. Please try again later.');
                 }
-                setMaxIterate(maxIt)
-                setWinner(data.winner);
-                setOpponentSymbol(data.opponentSymbol);
-                if (data.opponentSymbol === 'X') setUserSymbol('O');
-                else setUserSymbol('X');
-                setOpponent(data.opponent);
             } else {
               toast.error('Something went wrong. Please try again later.');
             }
@@ -58,14 +58,14 @@ function SpGameDisplay() {
             toast.error('Something went wrong. Please try again later.');
             console.error('Error while trying to get game data:', error);
         }
-    };
+    }, [navigate]);
 
     useEffect(() => {
         setBoard(Array(9).fill('null'));
         getGame(id === undefined ? '0' : id);
 
         return () => {};
-    }, [id]);
+    }, [id, getGame]);
 
     const goBack = () => {
         const index = parseInt(moves[iterate - 1][4], 10);

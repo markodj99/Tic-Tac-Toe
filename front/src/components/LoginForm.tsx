@@ -9,6 +9,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import toast from 'react-hot-toast';
+import { fetchWithIntercep } from "../FetchWithIntercep";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -26,16 +27,9 @@ function LoginForm() {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(values)
-        });
-        
-        const data = await response.json();
-        if (response.ok) {
+        const {isOk, data} = await fetchWithIntercep<any>('api/users/login', 'POST', navigate, values);
+
+        if (isOk) {
           const jwt = data.message;
           localStorage.setItem('token', jwt);
 

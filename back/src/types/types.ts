@@ -46,13 +46,13 @@ export interface HasGameResponse {
 }
 
 export interface GameState {
+    creatorId: number,
+    joinerId: number,
+    creatorSymbol: string,
+    joinerSymbol: string,
+    turnToMove: number,
     moves: string[],
-    boardState: string[],
-    turnToMove: boolean,
-    symbol: string,
-    player: string,
-    canPlay: boolean,
-    playerId: number
+    boardState: string[]
 }
 
 export interface UpdatedGameStatus {

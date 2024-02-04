@@ -2,11 +2,11 @@ import { Sequelize } from 'sequelize';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-const dbName = process.env.DATABASENAME || 'db_name';
-const dbUsername = process.env.DATABASEUSERNAME || 'db_username';
-const dbPassword = process.env.DATABASEPASSWORD || 'db_password';
-const dbHost = process.env.DATABASEHOST || 'db_host';
-const port = process.env.DATABASEPORT ? parseInt(process.env.DATABASEPORT, 10) : 10;
+const dbName = process.env.DATABASE_NAME || 'db_name';
+const dbUsername = process.env.DATABASE_USERNAME || 'db_username';
+const dbPassword = process.env.DATABASE_PASSWORD || 'db_password';
+const dbHost = process.env.DATABASE_HOST || 'db_host';
+const port = process.env.DATABASE_PORT ? parseInt(process.env.DATABASE_PORT, 10) : 10;
 
 const seq:Sequelize = new Sequelize(dbName, dbUsername, dbPassword, {
   host: dbHost,

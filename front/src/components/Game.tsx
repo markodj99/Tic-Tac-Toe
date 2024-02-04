@@ -7,14 +7,15 @@ import { Socket, io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { JwtPayload, jwtDecode } from 'jwt-decode';
 
+
 interface GameState {
+  creatorId: number,
+  joinerId: number,
+  creatorSymbol: string,
+  joinerSymbol: string,
+  turnToMove: number,
   moves: string[],
-  boardState: string[],
-  turnToMove: boolean,
-  symbol: string,
-  player: string,
-  canPlay: boolean,
-  playerId: number
+  boardState: string[]
 }
 
 interface UpdatedGameStatus {
@@ -35,10 +36,12 @@ function Game() {
   const [socket, setSocket] = useState<Socket>();
 
   useEffect(() => {
-    const jwt = localStorage.getItem('token') || 'a';
-    let decoded:JwtPayload = jwtDecode(jwt);
-    let userId = 0;
-    if ('id' in decoded) userId = decoded.id as number;
+    const jwt = localStorage.getItem('token') || null;
+    let userId = -1;
+    if (jwt) {
+        let decoded:JwtPayload = jwtDecode(jwt);
+        if ('id' in decoded) userId = decoded.id as number;
+    }
 
     const newSocket = io('http://localhost:5000');
     setSocket(newSocket);
@@ -53,15 +56,31 @@ function Game() {
       newSocket.on('getStateResponse', (response:GameState) => {
         setBoard(response.boardState);
         setMoves(response.moves);
-        setUserSymbol(response.symbol);
-        setPlayerId(response.playerId);
-        if (response.canPlay) {
-          console.log(response.turnToMove);
-          setMessage(response.turnToMove ? 'Your Turn To Move' : 'Waiting For An Opponent To Make A Move'); 
-          setCanClick(response.turnToMove ? true : false);
+
+        if (userId === response.creatorId) {
+          setUserSymbol(response.creatorSymbol);
+          setPlayerId(response.creatorId);
+          if (response.joinerId === -1) {
+            setMessage('Waiting For An Opponent To Join'); 
+            setCanClick(false);
+          } else if (response.turnToMove === userId){
+            setMessage('Your Turn To Move'); 
+            setCanClick(true);
+          } else {
+            setMessage('Waiting For An Opponent To Make A Move'); 
+            setCanClick(false);
+          }
         } else {
-          setMessage('Waiting For An Opponent To Join');
-          setCanClick(false);
+          setUserSymbol(response.joinerSymbol);
+          setPlayerId(response.joinerId);
+
+          if (response.turnToMove === userId) {
+            setMessage('Your Turn To Move'); 
+            setCanClick(true);
+          } else {
+            setMessage('Waiting For An Opponent To Make A Move'); 
+            setCanClick(false);
+          }
         }
       });
     });
@@ -123,10 +142,13 @@ function Game() {
     if (socket) {
       setCanClick(!canClick);
       setMessage('Waiting For An Opponent To Make A Move');
+      const jwt = localStorage.getItem('token') || 'a';
+      let decoded:JwtPayload = jwtDecode(jwt);
+      let userId = 0;
+      if ('id' in decoded) userId = decoded.id as number;
 
-      const token = localStorage.getItem('token');
       const gameId = localStorage.getItem('gameId');
-      socket.emit('makeMove', gameId, token, newBoard, newMoves);
+      socket.emit('makeMove', gameId, userId, newBoard, newMoves);
     }
   };
 

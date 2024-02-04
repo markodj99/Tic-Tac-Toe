@@ -52,18 +52,18 @@ class MultiPlayerController{
         }
     }
 
-    async getState(gameId:string, token:string):Promise<GameState> {
+    async getState(gameId:string):Promise<GameState> {
         try {
-            return await this.multiPlayerService.getState(gameId, token);
+            return await this.multiPlayerService.getState(gameId);
         } catch (error) {
             console.error('Error when user tried to get game state:', error);
             throw error;
         }
     }
 
-    async makeMove(gameId: string, token:string, boardState:string[], moves:string[]):Promise<UpdatedGameStatus> {
+    async makeMove(gameId: string, userId:number, boardState:string[], moves:string[]):Promise<UpdatedGameStatus> {
         try {
-            return await this.multiPlayerService.makeMove(gameId, token, boardState, moves);
+            return await this.multiPlayerService.makeMove(gameId, userId, boardState, moves);
         } catch (error) {
             console.error('Error when user tried to make a move:', error);
             throw error;

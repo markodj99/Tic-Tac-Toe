@@ -23,7 +23,7 @@ class SinglePlayerService{
         ];
 
         dotenv.config();
-        this.privateKey = process.env.PRIVATEKEY || 'key';
+        this.privateKey = process.env.PRIVATE_KEY || 'key';
     }
 
     async createOrGetGame(token:string):Promise<CustomSPGameRouterResponse> {

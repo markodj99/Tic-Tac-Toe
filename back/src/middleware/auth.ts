@@ -8,7 +8,7 @@ const auth = async (req:Request, res:Response, next:NextFunction) => {
     if (!authorizationHeader) return res.status(401).json({ message: 'Access denied. No token provided.' });
     
     dotenv.config();
-    const privateKey = process.env.PRIVATEKEY || 'key';
+    const privateKey = process.env.PRIVATE_KEY || 'key';
     try {
         const token = jwt.verify(authorizationHeader, privateKey);
         next();
